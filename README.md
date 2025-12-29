@@ -7,11 +7,15 @@
 
 <!-- badges: end -->
 
-The goal of crispyr is to …
+crispyr is intended as a collection of wrappers for CRISPR-Cas9
+analysis.
+
+Right now it is very much in early development and I’m using it
+primarily for internal use and to get familiar with package building.
 
 ## Installation
 
-You can install the development version of crispyr from
+You couldn install the development version of crispyr from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -22,14 +26,11 @@ pak::pak("StrawHattM/crispyr")
 or
 
 ``` r
-# install.packages("pak")
-pak::pak("StrawHattM/crispyr")
-```
-
-``` r
 # install.packages("devtools")
 devtools::install_github("StrawHattM/crispyr")
 ```
+
+but it’s probably not going to do much for you
 
 ## Example
 

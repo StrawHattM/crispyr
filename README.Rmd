@@ -25,7 +25,7 @@ use and to get familiar with package building.
 
 ## Installation
 
-You can install the development version of crispyr from [GitHub](https://github.com/) with:
+You couldn install the development version of crispyr from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
@@ -39,6 +39,7 @@ or
 devtools::install_github("StrawHattM/crispyr")
 ```
 
+but it's probably not going to do much for you 
 
 ## Example
 

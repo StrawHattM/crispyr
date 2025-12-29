@@ -1,3 +1,2 @@
 
-
-`%nin%` <- Negate(`%in%`)
+`%nin%` <- function(x, y) return(!x %in% y)

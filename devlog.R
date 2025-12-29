@@ -34,6 +34,13 @@ usethis::use_r("nin")
 
 # here I added %nin% code to the R file and saved it.
 
-load_all()
+load_all() # should make the %nin% function available
+
+# we can check it works after loading
+c("A", "B", "C", "D", "E", "F") %nin% c("B", "A", "D", "E")
+
+exists("%nin%", where = globalenv(), inherits = FALSE)
+# has to throw FALSE because we're in the development environment, not global
 
 
+check()
