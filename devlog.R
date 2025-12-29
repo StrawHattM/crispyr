@@ -21,7 +21,12 @@
 # )
 
 
-# Startup -----------------------------------------------------------------
+
+# Initial Settings -----------------------------------------------------------------
+
+use_github("StrawHattM/crispyr")
+
+use_mit_license()
 
 # Should come preloaded from the .Rprofile thing
 
@@ -42,5 +47,14 @@ c("A", "B", "C", "D", "E", "F") %nin% c("B", "A", "D", "E")
 exists("%nin%", where = globalenv(), inherits = FALSE)
 # has to throw FALSE because we're in the development environment, not global
 
+check() # global check for getting used to it
 
-check()
+## When in the function, create a roxygen2 skeleton (Ctrl+Alt+Shift+R) to document
+## the function and save it. After, call document()
+document()
+
+# This is weird because %nin% shouldn't be a function, but a logical operator
+?`%nin%` # necessary to add `` to escape the special characters.
+
+
+install()
