@@ -11,7 +11,7 @@
 #' y <- c("B", "A", "D", "E")
 #'
 #' x %nin% y
-#' [1] FALSE FALSE TRUE FALSE FALSE TRUE
+#' c("FALSE", "FALSE", "TRUE", "FALSE", "FALSE", "TRUE")
 #'
 
 `%nin%` <- function(x, y) { return(!x %in% y) }

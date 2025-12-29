@@ -28,6 +28,8 @@ use_github("StrawHattM/crispyr")
 
 use_mit_license()
 
+use_testthat()
+
 # Should come preloaded from the .Rprofile thing
 
 library(devtools)
@@ -37,15 +39,15 @@ library(devtools)
 
 usethis::use_r("nin")
 
-# here I added %nin% code to the R file and saved it.
+## here I added %nin% code to the R file and saved it.
 
 load_all() # should make the %nin% function available
 
-# we can check it works after loading
+## we can check it works after loading
 c("A", "B", "C", "D", "E", "F") %nin% c("B", "A", "D", "E")
 
 exists("%nin%", where = globalenv(), inherits = FALSE)
-# has to throw FALSE because we're in the development environment, not global
+## has to throw FALSE because we're in the development environment, not global
 
 check() # global check for getting used to it
 
@@ -53,8 +55,13 @@ check() # global check for getting used to it
 ## the function and save it. After, call document()
 document()
 
-# This is weird because %nin% shouldn't be a function, but a logical operator
+## This is weird because %nin% shouldn't be a function, but a logical operator
 ?`%nin%` # necessary to add `` to escape the special characters.
 
-
 install()
+
+## Make tests, again weird because of the operator nature
+
+usethis::use_test("grapes-nin-grapes")
+
+test()

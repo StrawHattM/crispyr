@@ -22,6 +22,6 @@ x <- c("A", "B", "C", "D", "E", "F")
 y <- c("B", "A", "D", "E")
 
 x \%nin\% y
-[1] FALSE FALSE TRUE FALSE FALSE TRUE
+c("FALSE", "FALSE", "TRUE", "FALSE", "FALSE", "TRUE")
 
 }
