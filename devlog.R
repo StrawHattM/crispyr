@@ -26,7 +26,7 @@
 
 use_github("StrawHattM/crispyr")
 
-use_mit_license()
+use_mit_licuseense()
 
 use_testthat()
 
@@ -65,3 +65,12 @@ install()
 usethis::use_test("grapes-nin-grapes")
 
 test()
+
+
+# NineSquares, the big one ------------------------------------------------
+
+usethis::use_r("NineSquares")
+
+document()
+load_all()
+install()
