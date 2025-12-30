@@ -1,9 +1,9 @@
 #' /Not in/ operator
 #'
-#' @param x Character vector to check belonging
-#' @param y Character vector to check x against
+#' @param x Character vector to check belonging.
+#' @param y Character vector to check x against.
 #'
-#' @returns Boolean vector of the same length as x
+#' @returns Boolean vector of the same length as x indicating if each element of x is not in y.
 #' @export
 #'
 #' @examples

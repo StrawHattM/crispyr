@@ -7,12 +7,12 @@
 x \%nin\% y
 }
 \arguments{
-\item{x}{Character vector to check belonging}
+\item{x}{Character vector to check belonging.}
 
-\item{y}{Character vector to check x against}
+\item{y}{Character vector to check x against.}
 }
 \value{
-Boolean vector of the same length as x
+Boolean vector of the same length as x indicating if each element of x is not in y.
 }
 \description{
 /Not in/ operator

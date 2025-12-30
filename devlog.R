@@ -88,5 +88,19 @@ cutoffs <- NScutoff(data$LFC, scale = 1)
 usethis::use_test("NineSquares")
 test()
 
+# checking behaviour of NSbasedf
+
+data <- data.frame(
+  gene = paste0("Gene", 1:10),
+  num = c(2, 3, 4, 1, 5, 3, 2, 4, 5, 3),
+  untreated_LFC = stats::rnorm(10, mean = 0, sd = 2),
+  treated_LFC = stats::rnorm(10, mean = 0, sd = 2),
+  untreated_pval = stats::runif(10, min = 0, max = 1),
+  treated_pval = stats::runif(10, min = 0, max = 1)
+)
+
+NSbasedf(data, control = untreated_LFC,
+         treament = treated_LFC,
+         min_sgrna = 3)
 
 check()

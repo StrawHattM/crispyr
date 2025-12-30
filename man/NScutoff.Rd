@@ -7,11 +7,11 @@
 NScutoff(x, scale, force_zero_center = FALSE)
 }
 \arguments{
-\item{x}{numerical column / vector}
+\item{x}{numerical column / vector.}
 
-\item{scale}{standard deviation multiplier}
+\item{scale}{standard deviation multiplier.}
 
-\item{force_zero_center}{indicate if you want the cutoffs to be forcefully centered around zero}
+\item{force_zero_center}{indicate if you want the cutoffs to be forcefully centered around zero.}
 }
 \value{
 A vector of length 2 with the lower and upper cutoff
