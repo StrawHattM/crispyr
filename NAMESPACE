@@ -2,3 +2,5 @@
 
 export("%nin%")
 export(NScutoff)
+importFrom(magrittr,"%>%")
+importFrom(rlang,.data)

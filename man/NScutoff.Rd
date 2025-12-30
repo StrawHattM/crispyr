@@ -23,7 +23,7 @@ Generate cutoffs for Nine Square Plots
 
 data <- data.frame(
   gene = paste0("Gene", 1:100),
-  LFC = rnorm(1000, mean = 0, sd = 2)
+  LFC = stats::rnorm(1000, mean = 0, sd = 2)
 )
 
 cutoffs <- NScutoff(data$LFC, scale = 1)

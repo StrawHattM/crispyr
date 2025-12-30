@@ -22,7 +22,7 @@
 
 
 
-# Initial Settings -----------------------------------------------------------------
+# UseThese -----------------------------------------------------------------
 
 use_github("StrawHattM/crispyr")
 
@@ -30,9 +30,11 @@ use_mit_licuseense()
 
 use_testthat()
 
-# Should come preloaded from the .Rprofile thing
+usethis::use_package("dplyr", min_version = TRUE)
+usethis::use_package("ggplot2", min_version = TRUE)
 
-library(devtools)
+use_import_from("magrittr", "%>%")
+use_import_from("rlang", ".data")
 
 
 # First function: %nin% ---------------------------------------------------
@@ -73,4 +75,18 @@ usethis::use_r("NineSquares")
 
 document()
 load_all()
-install()
+
+
+
+## This goes into the examples of the function, but it's good to check that it works tbh
+data <- data.frame(gene = paste0("Gene", 1:100),
+                   LFC = rnorm(1000, mean = 5, sd = 2))
+cutoffs <- NScutoff(data$LFC, scale = 1)
+
+
+
+usethis::use_test("NineSquares")
+test()
+
+
+check()
