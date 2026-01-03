@@ -13,12 +13,14 @@
 library(crispyr)
 
 # UPDATE THESE PATHS TO YOUR DATA DIRECTORY
-data_dir <- "path/to/your/CP0045/data"
-fastq_files <- file.path(data_dir, c("sample1.fastq.gz", "sample2.fastq.gz"))
-reference_csv <- file.path(data_dir, "CP0045_reference.csv")
-chip_file <- file.path(data_dir, "CP0045_GRCm38_NCBI_CRISPRko_strict_gene.chip")
-sample_manifest <- file.path(data_dir, "samples.csv")
+data_dir <- "/d/Bibliotecas/Biologia/crispyr_fastq/example_data/subset_example"
+fastq_files <- file.path(data_dir, "subset_sample.fastq.gz")
+reference_csv <- file.path(data_dir, "CP0045_reference_subset.csv")
+chip_file <- file.path(data_dir, "CP0045_GRCm38_NCBI_CRISPRko_strict_gene_subset.chip")
+sample_manifest <- file.path(data_dir, "sample_manifest_subset.csv")
 output_dir <- file.path(data_dir, "crispyr_results")
+
+dir.create(output_dir, showWarnings = FALSE)
 
 cat("\n========== CRISPYR Pipeline (Wrapper) ==========\n\n")
 
@@ -42,7 +44,9 @@ cat("\n========== PIPELINE COMPLETE ==========\n")
 cat(sprintf("Total time: %.2f minutes\n\n", as.numeric(elapsed)))
 
 # View results
-cat("Construct-level counts:\n")
-print(head(result$construct_counts$matrix))
-cat("\nGene-level counts:\n")
-print(head(result$gene_counts$matrix))
+cat("Construct-level counts (first 5 rows):\n")
+print(head(result$construct_counts$matrix, 5))
+cat("\nGene-level counts (first 5 rows):\n")
+print(head(result$gene_counts$matrix, 5))
+cat("\nQC Metrics:\n")
+print(result$qc_metrics)
