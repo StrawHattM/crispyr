@@ -210,3 +210,19 @@ test_that("NSfilterpval handles invalid min_pval", {
 })
 
 
+# test_that("NSgoidframe creates correct GO ID dataframe", {
+#   data <- data.frame(
+#     id = paste0("Gene", 1:5),
+#     num = c(3, 4, 5, 3, 4),
+#     control = stats::rnorm(5, mean = 0, sd = 2),
+#     treatment = stats::rnorm(5, mean = 0, sd = 2)
+#   )
+#
+#   goi_vector <- c("Gene1", "Gene3", "Gene5")
+#
+#   result <- NSgoidf(data, goi_vector)
+#
+#   expect_equal(nrow(result), length(goi_vector))
+#   expect_equal(result$id, goi_vector)
+#   expect_true(all(c("num", "control", "treatment") %in% colnames(result)))
+# })

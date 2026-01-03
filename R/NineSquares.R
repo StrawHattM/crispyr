@@ -181,3 +181,24 @@ NSfilterpval <- function(data, min_pval = 0.05) {
   return(tempdf)
 }
 
+
+#'
+#' #' Create a filtered dataset containing only genes of interest for highlighting
+#' #'
+#' #' @param data temporary data data frame generated with NSbasedf function
+#' #' @param gene_list vector of gene ids to filter the data frame
+#' #'
+#' #' @returns a data frame filtered by gene_list
+#' #' @export
+#' #'
+#' #' @examples
+#' NSaddgoi <- function(data, graph, gene_list) {
+#'
+#'   tempdf <- data %>%
+#'     dplyr::filter(.data$id %in% gene_list)
+#'
+#'   return(tempdf)
+#' }
+#'
+
+
