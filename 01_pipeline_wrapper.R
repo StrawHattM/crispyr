@@ -12,13 +12,15 @@
 
 library(crispyr)
 
-# UPDATE THESE PATHS TO YOUR DATA DIRECTORY
+# Data directory with subset example
 data_dir <- "/d/Bibliotecas/Biologia/crispyr_fastq/example_data/subset_example"
-fastq_files <- file.path(data_dir, "subset_sample.fastq.gz")
-reference_csv <- file.path(data_dir, "CP0045_reference_subset.csv")
-chip_file <- file.path(data_dir, "CP0045_GRCm38_NCBI_CRISPRko_strict_gene_subset.chip")
-sample_manifest <- file.path(data_dir, "sample_manifest_subset.csv")
-output_dir <- file.path(data_dir, "crispyr_results")
+
+# File paths
+fastq_files <- paste0(data_dir, "/subset_sample.fastq.gz")
+reference_csv <- paste0(data_dir, "/CP0045_reference_subset.csv")
+chip_file <- paste0(data_dir, "/CP0045_GRCm38_NCBI_CRISPRko_strict_gene_subset.chip")
+sample_manifest <- paste0(data_dir, "/sample_manifest_subset.csv")
+output_dir <- paste0(data_dir, "/crispyr_results")
 
 dir.create(output_dir, showWarnings = FALSE)
 

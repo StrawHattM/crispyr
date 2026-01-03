@@ -18,13 +18,15 @@
 library(crispyr)
 library(data.table)
 
-# UPDATE THESE PATHS
+# Data directory with subset example
 data_dir <- "/d/Bibliotecas/Biologia/crispyr_fastq/example_data/subset_example"
-fastq_files <- file.path(data_dir, "subset_sample.fastq.gz")
-reference_csv <- file.path(data_dir, "CP0045_reference_subset.csv")
-chip_file <- file.path(data_dir, "CP0045_GRCm38_NCBI_CRISPRko_strict_gene_subset.chip")
-sample_manifest_csv <- file.path(data_dir, "sample_manifest_subset.csv")
-output_dir <- file.path(data_dir, "crispyr_results_stepwise")
+
+# File paths
+fastq_files <- paste0(data_dir, "/subset_sample.fastq.gz")
+reference_csv <- paste0(data_dir, "/CP0045_reference_subset.csv")
+chip_file <- paste0(data_dir, "/CP0045_GRCm38_NCBI_CRISPRko_strict_gene_subset.chip")
+sample_manifest_csv <- paste0(data_dir, "/sample_manifest_subset.csv")
+output_dir <- paste0(data_dir, "/crispyr_results_stepwise")
 dir.create(output_dir, showWarnings = FALSE)
 
 cat("\n========== CRISPYR Step-by-Step Pipeline ==========\n\n")
@@ -91,12 +93,12 @@ cat(sprintf("  Time: %.1f sec\n\n", as.numeric(difftime(Sys.time(), t7, units = 
 # STEP 8: Save results
 cat("Step 8: Saving results...\n")
 t8 <- Sys.time()
-write.csv(construct_counts$matrix, file.path(output_dir, "construct_counts_raw.csv"))
-write.csv(norm_construct, file.path(output_dir, "construct_counts_normalized.csv"))
-write.csv(gene_counts$matrix, file.path(output_dir, "gene_counts_raw.csv"))
-write.csv(norm_gene, file.path(output_dir, "gene_counts_normalized.csv"))
-write.csv(qc$overall_metrics, file.path(output_dir, "qc_metrics_overall.csv"), row.names = FALSE)
-write.csv(qc$per_sample_metrics, file.path(output_dir, "qc_metrics_per_sample.csv"), row.names = FALSE)
+write.csv(construct_counts$matrix, paste0(output_dir, "/construct_counts_raw.csv"))
+write.csv(norm_construct, paste0(output_dir, "/construct_counts_normalized.csv"))
+write.csv(gene_counts$matrix, paste0(output_dir, "/gene_counts_raw.csv"))
+write.csv(norm_gene, paste0(output_dir, "/gene_counts_normalized.csv"))
+write.csv(qc$overall_metrics, paste0(output_dir, "/qc_metrics_overall.csv"), row.names = FALSE)
+write.csv(qc$per_sample_metrics, paste0(output_dir, "/qc_metrics_per_sample.csv"), row.names = FALSE)
 cat(sprintf("  Results saved to: %s\n", output_dir))
 cat(sprintf("  Time: %.1f sec\n\n", as.numeric(difftime(Sys.time(), t8, units = "secs"))))
 
