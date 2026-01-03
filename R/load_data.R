@@ -39,7 +39,7 @@ load_reference_library <- function(ref_file, quiet = FALSE) {
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Loaded reference library with {nrow(ref_lib)} construct barcodes"
+      "*" = "Loaded reference library with {nrow(ref_lib)} construct barcodes"
     ))
   }
 
@@ -94,7 +94,7 @@ load_chip_file <- function(chip_file, quiet = FALSE) {
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Loaded chip file with {nrow(chip)} barcode-gene mappings"
+      "*" = "Loaded chip file with {nrow(chip)} barcode-gene mappings"
     ))
   }
 
@@ -150,7 +150,7 @@ load_sample_manifest <- function(manifest_file,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Loaded sample manifest with {nrow(manifest)} samples"
+      "*" = "Loaded sample manifest with {nrow(manifest)} samples"
     ))
   }
 

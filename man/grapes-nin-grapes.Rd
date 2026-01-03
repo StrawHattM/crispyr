@@ -2,7 +2,7 @@
 % Please edit documentation in R/nin.R
 \name{\%nin\%}
 \alias{\%nin\%}
-\title{/Not in/ operator}
+\title{Not In operator}
 \usage{
 x \%nin\% y
 }
@@ -15,13 +15,5 @@ x \%nin\% y
 Boolean vector of the same length as x
 }
 \description{
-/Not in/ operator
-}
-\examples{
-x <- c("A", "B", "C", "D", "E", "F")
-y <- c("B", "A", "D", "E")
-
-x \%nin\% y
-c("FALSE", "FALSE", "TRUE", "FALSE", "FALSE", "TRUE")
-
+Negation of the \%in\% operator for checking if elements are NOT in a vector.
 }

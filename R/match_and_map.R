@@ -108,7 +108,7 @@ match_constructs <- function(extracted_barcodes,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Matched {sum(!is.na(result$construct_id))} of {nrow(result)} reads to constructs",
+      "*" = "Matched {sum(!is.na(result$construct_id))} of {nrow(result)} reads to constructs",
       "i" = "Match summary:",
       paste0("  ", match_summary$match_type, ": ", match_summary$count, collapse = "\n")
     ))
@@ -121,8 +121,14 @@ match_constructs <- function(extracted_barcodes,
 #' Exact Barcode Matching (Internal)
 #'
 #' Fast exact matching using hash table lookup.
+#' @param extracted_barcodes Data.table. Extracted barcode information.
+#' @param reference_library Data.table. Reference construct library.
+#' @param quiet Logical. Suppress messages.
 #'
-#' @keywords internal
+#' @param extracted_barcodes Data.table of extracted barcodes
+#' @param reference_library Data.table of reference constructs
+#' @param quiet Logical. Suppress messages.
+#' @export
 match_constructs_exact <- function(extracted_barcodes,
                                    reference_library,
                                    quiet = FALSE) {
@@ -156,10 +162,14 @@ match_constructs_exact <- function(extracted_barcodes,
 
 
 #' Approximate Barcode Matching (Internal)
+#' @param extracted_barcodes Data.table. Extracted barcode information.
+#' @param reference_library Data.table. Reference construct library.
+#' @param max_mismatches Integer. Maximum hamming distance.
+#' @param quiet Logical. Suppress messages.
 #'
 #' Slower approximate matching allowing for mismatches.
 #'
-#' @keywords internal
+#' @export
 match_constructs_approximate <- function(extracted_barcodes,
                                           reference_library,
                                           max_mismatches = 1,
@@ -325,7 +335,7 @@ map_constructs_to_genes <- function(matched_barcodes,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Gene mapping complete",
+      "*" = "Gene mapping complete",
       "i" = "Reads with gene assignment: {n_with_genes}",
       "i" = "Reads without gene assignment: {n_no_genes}",
       "i" = "Reads mapping to multiple genes: {n_1_to_many}"

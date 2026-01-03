@@ -17,7 +17,7 @@
 #' parse_barcode_policy("PREFIX:CACCG@6")
 #' # Returns: list(flanking_seq = "CACCG", position_offset = 6)
 #'
-#' @keywords internal
+#' @export
 parse_barcode_policy <- function(policy) {
   # Match pattern: PREFIX:SEQUENCE@POSITION
   pattern <- "^(PREFIX):([ACGT]+)@(\\d+)$"
@@ -177,7 +177,7 @@ extract_barcodes_from_fastq <- function(fastq_files,
     n_total <- nrow(result)
     pct <- round(100 * n_success / n_total, 2)
     cli::cli_inform(c(
-      "✓" = "Extracted barcodes from {n_total} reads ({pct}% successful)"
+      "*" = "Extracted barcodes from {n_total} reads ({pct}% successful)"
     ))
   }
 
@@ -197,7 +197,7 @@ extract_barcodes_from_fastq <- function(fastq_files,
 #'
 #' @return A data.frame with one row containing extraction results.
 #'
-#' @keywords internal
+#' @export
 extract_barcodes_from_read <- function(sequence,
                                         quality_string,
                                         read_id,

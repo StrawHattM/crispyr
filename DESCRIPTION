@@ -2,7 +2,7 @@ Package: crispyr
 Title: CRISPR Screen FastQ Processing and Analysis
 Version: 0.0.0.9000
 Authors@R: 
-    person("Martín", "González Fernández", , "martin.gonzalezfernandez@unibe.ch", role = c("aut", "cre"),
+    person("Martin", "Gonzalez Fernandez", , "martin.gonzalezfernandez@unibe.ch", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0006-8308-5493"))
 Description: crispyr processes multiplexed FASTQ files from pooled CRISPR screens into 
     construct and gene-level count matrices. It implements barcode extraction, library 
@@ -20,12 +20,13 @@ Imports:
     dplyr,
     tidyr,
     stringr,
-    rlang
+    stringdist,
+    readr,
+    rlang,
+    cli,
+    glue
 Suggests: 
-    testthat (>= 3.0.0),
-    knitr,
-    rmarkdown
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
-VignetteBuilder: knitr
 URL: https://github.com/StrawHattM/crispyr
 BugReports: https://github.com/StrawHattM/crispyr/issues

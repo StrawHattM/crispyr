@@ -83,7 +83,7 @@ calculate_qc_metrics <- function(extracted_barcodes,
 
   unique_constructs <- matched_reads[
     !is.na(construct_id),
-    uniqueN(construct_id)
+    data.table::uniqueN(construct_id)
   ]
 
   # Calculate depth statistics from construct-level counts
@@ -161,7 +161,7 @@ calculate_qc_metrics <- function(extracted_barcodes,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "QC metrics calculated",
+      "*" = "QC metrics calculated",
       "i" = "Overall: {total_reads} reads, {unique_constructs} unique constructs",
       "i" = "{nrow(per_sample)} samples analyzed"
     ))
@@ -177,8 +177,8 @@ calculate_qc_metrics <- function(extracted_barcodes,
 #' Process Pooled CRISPR Screen FASTQ Files
 #'
 #' Main wrapper function that orchestrates the complete CRISPR screen analysis pipeline:
-#' FASTQ processing → barcode extraction → library matching → gene mapping →
-#' count matrix generation → normalization → QC reporting.
+#' FASTQ processing -> barcode extraction -> library matching -> gene mapping ->
+#' count matrix generation -> normalization -> QC reporting.
 #'
 #' @param fastq_files Character vector of FASTQ file paths. Can be gzip-compressed.
 #' @param reference_library_csv Path to the reference library CSV file
@@ -395,7 +395,8 @@ process_pooled_screen <- function(fastq_files,
 #'
 #' @return Invisibly returns the results list (called for side effects).
 #'
-#' @keywords internal
+#' @export
+#' @importFrom utils write.table
 save_results <- function(results,
                           output_dir,
                           output_prefix = "crispyr_output",
@@ -468,7 +469,7 @@ save_results <- function(results,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Results saved to {output_dir}"
+      "*" = "Results saved to {output_dir}"
     ))
   }
 

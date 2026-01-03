@@ -66,7 +66,7 @@ aggregate_by_sample_barcode <- function(mapped_reads,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Sample barcode aggregation complete",
+      "*" = "Sample barcode aggregation complete",
       "i" = "Reads with matched samples: {n_matched}",
       "i" = "Reads with unmatched samples: {n_unmatched}"
     ))
@@ -78,7 +78,7 @@ aggregate_by_sample_barcode <- function(mapped_reads,
 
 #' Create Count Matrix
 #'
-#' Constructs a count matrix (samples × constructs/genes) from mapped and
+#' Constructs a count matrix (samples  x  constructs/genes) from mapped and
 #' aggregated reads.
 #'
 #' @param aggregated_reads A data.table from [aggregate_by_sample_barcode()]
@@ -91,7 +91,7 @@ aggregate_by_sample_barcode <- function(mapped_reads,
 #' @param quiet Logical. If `TRUE`, suppress progress messages. Default: `FALSE`.
 #'
 #' @return A list with elements:
-#'   - `matrix`: A count matrix (matrix class) with dimensions (constructs/genes × samples).
+#'   - `matrix`: A count matrix (matrix class) with dimensions (constructs/genes  x  samples).
 #'     Rows are construct barcodes or genes, columns are samples/conditions.
 #'   - `feature_metadata`: A data.frame with metadata for each row (barcode, construct_id, etc.)
 #'   - `sample_metadata`: A data.frame with metadata for each column (condition, sample_barcode, etc.)
@@ -216,7 +216,7 @@ create_count_matrix <- function(aggregated_reads,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Count matrix created: {nrow(count_matrix)} {level}s × {ncol(count_matrix)} samples"
+      "*" = "Count matrix created: {nrow(count_matrix)} {level}s  x  {ncol(count_matrix)} samples"
     ))
   }
 
@@ -269,6 +269,7 @@ create_count_matrix <- function(aggregated_reads,
 #' }
 #'
 #' @export
+#' @importFrom stats median
 lognormalize_counts <- function(count_matrix,
                                  method = c("poolq", "log2", "cpm"),
                                 quiet = FALSE) {
@@ -308,7 +309,7 @@ lognormalize_counts <- function(count_matrix,
 
   if (!quiet) {
     cli::cli_inform(c(
-      "✓" = "Normalization complete"
+      "*" = "Normalization complete"
     ))
   }
 

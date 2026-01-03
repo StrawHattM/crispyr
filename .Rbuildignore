@@ -2,3 +2,11 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^LICENSE\.md$
+^DEVELOPMENT\.md$
+^LOCAL_TESTING\.md$
+^devlog\.R$
+^generate_docs\.R$
+^run_check\.R$
+^check_output\.log$
+^\.git
+^\.github
