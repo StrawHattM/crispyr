@@ -1,0 +1,349 @@
+---
+title: "CRISPR Screen FastQ Processing Pipeline"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CRISPR Screen FastQ Processing Pipeline}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+`crispyr` processes multiplexed FASTQ files from pooled CRISPR screens into count matrices 
+ready for downstream statistical analysis. This vignette demonstrates the complete workflow 
+using the Broad Institute's CP0045 BRIE AiO library as an example.
+
+## Quick Start
+
+The main function is `process_pooled_screen()`, which orchestrates the entire pipeline:
+
+```{r eval=FALSE}
+library(crispyr)
+
+result <- process_pooled_screen(
+  fastq_files = "path/to/sample.fastq.gz",
+  reference_library_csv = "CP0045_reference_20160120.csv",
+  chip_file = "CP0045_GRCm38_NCBI_CRISPRko_strict_gene_20221201.chip",
+  sample_manifest_csv = "sample_manifest.csv",
+  output_dir = "./results"
+)
+
+# Access results
+construct_counts <- result$construct_counts$matrix
+gene_counts <- result$gene_counts$matrix
+qc_metrics <- result$qc_metrics
+```
+
+## Pipeline Overview
+
+The analysis pipeline consists of the following steps:
+
+### 1. Reference File Loading
+
+First, we load the reference files that define the library:
+
+```{r eval=FALSE}
+# Load construct barcode reference
+ref_library <- load_reference_library(
+  "CP0045_reference_20160120.csv"
+)
+head(ref_library)
+
+# Load gene annotations
+chip <- load_chip_file(
+  "CP0045_GRCm38_NCBI_CRISPRko_strict_gene_20221201.chip"
+)
+head(chip)
+
+# Load sample manifest
+manifest <- load_sample_manifest(
+  "sample_manifest.csv"
+)
+head(manifest)
+```
+
+### 2. Barcode Extraction
+
+Extract construct and sample barcodes from FASTQ reads. The barcode policy specifies 
+where the construct barcode is located in the read:
+
+```{r eval=FALSE}
+# Extract barcodes using the Broad Institute default policy
+# FORMAT: PREFIX:SEQUENCE@POSITION
+# This means: find "CACCG", then extract 20bp starting at position 6
+extracted <- extract_barcodes_from_fastq(
+  fastq_files = "sample.fastq.gz",
+  barcode_policy = "PREFIX:CACCG@6",  # Default Broad policy
+  construct_barcode_length = 20
+)
+
+head(extracted)
+# Columns: fastq_file, read_id, construct_barcode, sample_barcode, extraction_status
+```
+
+**Read Structure Example:**
+```
+Original Read:
+5'--[TTGAACCG]--[CACCG]--[AAAAAAAAAAAATGCATTCT]--3'
+   └─ sample ─┘        └─ flanking ─┘└─ guide ─┘
+   
+- Sample barcode (8bp): TTGAACCG (first 8bp of read)
+- Flanking sequence: CACCG
+- Construct barcode (20bp): AAAAAAAAAAAATGCATTCT (extracted from position 6 after flanking)
+```
+
+### 3. Construct Library Matching
+
+Map extracted barcodes to known constructs:
+
+```{r eval=FALSE}
+matched <- match_constructs(
+  extracted_barcodes = extracted,
+  reference_library = ref_library,
+  max_mismatches = 0  # Exact matching only
+)
+
+head(matched)
+# Additional columns: construct_id, match_type, match_quality
+```
+
+### 4. Gene Mapping
+
+Map construct barcodes to their target genes:
+
+```{r eval=FALSE}
+with_genes <- map_constructs_to_genes(
+  matched_barcodes = matched,
+  chip_file = chip
+)
+
+head(with_genes)
+# Additional columns: gene_symbol, gene_id, barcode_to_genes
+```
+
+### 5. Sample Demultiplexing
+
+Aggregate reads by sample barcode and map to conditions:
+
+```{r eval=FALSE}
+aggregated <- aggregate_by_sample_barcode(
+  mapped_reads = with_genes,
+  sample_manifest = manifest
+)
+
+head(aggregated)
+# Additional columns: condition, sample_barcode_matched
+```
+
+### 6. Count Matrix Generation
+
+Create count matrices at construct and gene levels:
+
+```{r eval=FALSE}
+# Construct-level counts (most fine-grained)
+construct_result <- create_count_matrix(
+  aggregated_reads = aggregated,
+  level = "construct"
+)
+
+construct_matrix <- construct_result$matrix
+# Dimensions: (# unique constructs) × (# samples)
+
+# Gene-level counts (aggregated across guides)
+gene_result <- create_count_matrix(
+  aggregated_reads = aggregated,
+  level = "gene"
+)
+
+gene_matrix <- gene_result$matrix
+# Dimensions: (# unique genes) × (# samples)
+```
+
+### 7. Normalization
+
+Apply log-normalization to account for sequencing depth differences:
+
+```{r eval=FALSE}
+# PoolQ-style normalization: log2((count + 1) / (median + 1))
+construct_lognorm <- lognormalize_counts(
+  construct_matrix,
+  method = "poolq"
+)
+
+gene_lognorm <- lognormalize_counts(
+  gene_matrix,
+  method = "poolq"
+)
+```
+
+### 8. Quality Control
+
+Calculate comprehensive QC metrics:
+
+```{r eval=FALSE}
+qc <- calculate_qc_metrics(
+  extracted_barcodes = extracted,
+  matched_reads = matched,
+  aggregated_reads = aggregated
+)
+
+# Overall metrics
+print(qc$overall_metrics)
+
+# Per-sample metrics
+print(qc$per_sample_metrics)
+```
+
+## Interpreting Results
+
+### Count Matrices
+
+Both raw count and log-normalized matrices are provided:
+
+- **Raw counts**: Integer read counts per feature (construct or gene) per sample.
+  Suitable for statistical testing with count-based models (DESeq2, edgeR, etc.).
+  
+- **Log-normalized counts**: Log2-scaled values normalized for sequencing depth.
+  More suitable for visualization and exploratory analysis.
+
+### Quality Metrics
+
+Key QC statistics:
+
+- **Extraction Success %**: Percentage of reads with successfully extracted barcodes
+- **% Match**: Percentage of extracted barcodes that match the reference library
+- **Unique Constructs**: Number of distinct guides detected in each sample
+- **Coverage**: Percentage of library constructs detected
+- **Depth**: Read count statistics (median, mean, min, max per construct)
+
+A good screen typically has:
+- ≥ 70% barcode extraction success
+- ≥ 70-90% of extracted barcodes matching the library
+- ≥ 30-40x median coverage per construct
+- ≥ 95% library coverage
+
+## Example: CP0045 Library Analysis
+
+Here's a complete example using the CP0045 BRIE AiO library:
+
+```{r eval=FALSE}
+library(crispyr)
+
+# Define file paths
+fastq_file <- "HCWFFDRX7_1_0469424154.fastq.gz"
+ref_file <- "CP0045_reference_20160120.csv"
+chip_file <- "CP0045_GRCm38_NCBI_CRISPRko_strict_gene_20221201.chip"
+manifest_file <- "GPP-6350_conditions.csv"
+
+# Process the screen
+result <- process_pooled_screen(
+  fastq_files = fastq_file,
+  reference_library_csv = ref_file,
+  chip_file = chip_file,
+  sample_manifest_csv = manifest_file,
+  barcode_policy = "PREFIX:CACCG@6",
+  normalize = TRUE,
+  output_dir = "./crispyr_results",
+  output_prefix = "CP0045"
+)
+
+# Examine results
+str(result)
+
+# Access count matrices
+construct_counts <- result$construct_counts$matrix
+gene_counts <- result$gene_counts$matrix
+
+# Access normalized matrices
+construct_lognorm <- result$construct_lognorm
+gene_lognorm <- result$gene_lognorm
+
+# View QC metrics
+result$qc_metrics$overall_metrics
+result$qc_metrics$per_sample_metrics
+
+# Saved files in ./crispyr_results/:
+# - CP0045_construct_counts.tsv
+# - CP0045_gene_counts.tsv
+# - CP0045_construct_lognorm.tsv
+# - CP0045_gene_lognorm.tsv
+# - CP0045_qc_overall.txt
+# - CP0045_qc_per_sample.tsv
+```
+
+## Advanced Options
+
+### Custom Barcode Policies
+
+You can define custom barcode extraction policies for different sequencing strategies:
+
+```{r eval=FALSE}
+# Broad Institute default
+result <- process_pooled_screen(
+  ...,
+  barcode_policy = "PREFIX:CACCG@6"
+)
+
+# Other common policies
+# For reads with different flanking sequences:
+result <- process_pooled_screen(
+  ...,
+  barcode_policy = "PREFIX:GCCTG@5"
+)
+```
+
+Policy format: `"PREFIX:SEQUENCE@POSITION"`
+- `PREFIX`: Type (currently only "PREFIX" is supported)
+- `SEQUENCE`: Flanking DNA sequence to locate in the read
+- `POSITION`: Position offset where the barcode begins after the flanking sequence
+
+### Approximate Matching
+
+Allow mismatches in barcode matching (useful for low-quality reads):
+
+```{r eval=FALSE}
+result <- process_pooled_screen(
+  ...,
+  max_mismatches = 1  # Allow up to 1 mismatch
+)
+```
+
+**Note**: This is slower but catches sequences with 1-2 sequencing errors.
+
+## Downstream Analysis
+
+The output count matrices can be used for downstream analysis with standard Bioconductor tools:
+
+```{r eval=FALSE}
+library(DESeq2)
+library(limma)
+library(edgeR)
+
+# Example: Differential abundance analysis with DESeq2
+dds <- DESeqDataSetFromMatrix(
+  countData = result$construct_counts$matrix,
+  colData = result$sample_metadata,
+  design = ~ condition
+)
+
+dds <- DESeq(dds)
+results <- results(dds)
+```
+
+## Session Information
+
+```{r}
+sessionInfo()
+```
+
+## References
+
+- Broad GPP PoolQ Documentation: https://portals.broadinstitute.org/gpp/
+- CRISPR Screen Analysis: Hart et al. (2015) Nature Methods
