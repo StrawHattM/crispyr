@@ -32,9 +32,10 @@ use_testthat()
 
 usethis::use_package("dplyr", min_version = TRUE)
 usethis::use_package("ggplot2", min_version = TRUE)
+usethis::use_package("ggrepel", min_version = TRUE)
 
-use_import_from("magrittr", "%>%")
-use_import_from("rlang", ".data")
+usethis::use_import_from("magrittr", "%>%")
+usethis::use_import_from("rlang", ".data")
 
 
 # First function: %nin% ---------------------------------------------------
@@ -69,9 +70,9 @@ usethis::use_test("grapes-nin-grapes")
 test()
 
 
-# NineSquares, the big one ------------------------------------------------
+# NineSquares helpers for the big one ------------------------------------------------
 
-usethis::use_r("NineSquares")
+usethis::use_r("NineSquares_helpers")
 
 document()
 load_all()
@@ -85,22 +86,48 @@ cutoffs <- NScutoff(data$LFC, scale = 1)
 
 
 
-usethis::use_test("NineSquares")
+usethis::use_test("NineSquares_helpers")
 test()
 
 # checking behaviour of NSbasedf
 
+set.seed(42)
+
 data <- data.frame(
-  gene = paste0("Gene", 1:10),
-  num = c(2, 3, 4, 1, 5, 3, 2, 4, 5, 3),
-  untreated_LFC = stats::rnorm(10, mean = 0, sd = 2),
-  treated_LFC = stats::rnorm(10, mean = 0, sd = 2),
-  untreated_pval = stats::runif(10, min = 0, max = 1),
-  treated_pval = stats::runif(10, min = 0, max = 1)
+  gene = paste0("Gene", 1:5000),
+  num = sample(1:10, 5000, replace = TRUE),
+  untreated_LFC = stats::rnorm(5000, mean = 0, sd = 3),
+  treated_LFC = stats::rnorm(5000, mean = 0, sd = 3),
+  untreated_pval = stats::runif(5000, min = 0, max = 1),
+  treated_pval = stats::runif(5000, min = 0, max = 1)
 )
 
-NSbasedf(data, control = untreated_LFC,
-         treament = treated_LFC,
-         min_sgrna = 3)
+base_data <-
+  NSbasedf(data, control = untreated_LFC,
+           treament = treated_LFC,
+           ctrl_pval = untreated_pval,
+           treat_pval = treated_pval,
+           min_sgrna = 2)
 
-check()
+cutoffs <-
+  NSgencutoff(base_data, scale = 2, force_zero_center = "none")
+
+NSbasegraph(data = base_data,
+            x_cutoff = cutoffs$x_cutoff,
+            y_cutoff = cutoffs$y_cutoff,
+            slope_cutoff = cutoffs$slope_cutoff,
+            alpha = 0.4,
+            shape = 21,
+            xlab,
+            ylab,
+            title,
+            top_labeled = 10)
+
+
+
+
+# NineSquares assembly ----------------------------------------------------
+
+
+usethis::use_r("NineSquares")
+
