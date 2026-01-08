@@ -151,12 +151,11 @@ NSbasedf <-
 #' Filter data using minimum p value
 #'
 #' @param data temporary data data frame generated with NSbasedf function
-#' @param min_pval minimum p value to filter genes. Default is 0.05.
+#' @param min_pval numerical, minimum p value to filter genes. Default is 0.05.
 #'
 #' @returns a data frame filtered by min_pval
 #' @export
-#'
-#' @examples
+
 NSfilterpval <- function(data, min_pval = 0.05) {
   if (min_pval < 0 | min_pval > 1) {
     stop("min_pval has to be between 0 and 1")
@@ -175,14 +174,22 @@ NSfilterpval <- function(data, min_pval = 0.05) {
   return(tempdf)
 }
 
+#' Create and assign Squares in a dataset using cutoffs
+#'
+#' @param data data frame containing treatment & control columns, as generated
+#'   by NSbasegraph
+#' @param x_cutoff numerical length-2 vector with x axis cutoff values, as from
+#'   NSgencutoff
+#' @param y_cutoff numerical length-2 vector with y axis cutoff values, as from
+#'   NSgencutoff
+#' @param slope_cutoff numerical length-2 vector with diagonal axis cutoff
+#'   values, as from NSgencutoff
+#'
+#' @returns a data frame containing three new columns, diff, square, and rank (=
+#'   highest diff per square)
+#' @export
 
-
-NSbasegraph <- function(data,
-                        x_cutoff,
-                        y_cutoff,
-                        slope_cutoff,
-                        alpha = 0.4,
-                        shape = 21) {
+NSsquares <- function(data, x_cutoff, y_cutoff, slope_cutoff){
 
   if (missing(x_cutoff) | missing(y_cutoff) | missing(slope_cutoff)) {
     stop("x_cutoff, y_cutoff and slope_cutoff have to be provided")
@@ -190,29 +197,68 @@ NSbasegraph <- function(data,
 
   tempdf <- data %>%
     dplyr::mutate(
-      diff = treatment - control,
+      diff = "treatment" - "control",
       square = dplyr::case_when(
-        dplyr::between(treatment - control, slope_cutoff[1], slope_cutoff[2]) ~ "neutral_slope",
-        control < x_cutoff[1] & treatment < y_cutoff[1] ~ "bottom_left",
-        control > x_cutoff[2] & treatment < y_cutoff[1] ~ "bottom_right",
-        dplyr::between(control, x_cutoff[1], x_cutoff[2]) & treatment < y_cutoff[1] ~ "bottom_center",
-        dplyr::between(control, x_cutoff[1], x_cutoff[2]) & treatment > y_cutoff[2] ~ "top_center",
-        control < x_cutoff[1] & treatment > y_cutoff[2] ~ "top_left",
-        control > x_cutoff[2] & treatment > y_cutoff[2] ~ "top_right",
-        control < x_cutoff[1] & dplyr::between(treatment, y_cutoff[1], y_cutoff[2]) ~ "middle_left",
-        control > x_cutoff[2] & dplyr::between(treatment, y_cutoff[1], y_cutoff[2]) ~ "middle_right",
-        dplyr::between(control, x_cutoff[1], x_cutoff[2]) & dplyr::between(treatment, y_cutoff[1], y_cutoff[2]) ~ "center",
-        TRUE ~ "center"
+        dplyr::between("treatment" - "control", slope_cutoff[1], slope_cutoff[2]) ~ "neutral_slope", # important to be first
+        "control" < x_cutoff[1] & "treatment" < y_cutoff[1] ~ "bottom_left",
+        "control" > x_cutoff[2] & "treatment" < y_cutoff[1] ~ "bottom_right",
+        dplyr::between(control, x_cutoff[1], x_cutoff[2]) & "treatment" < y_cutoff[1] ~ "bottom_center",
+        dplyr::between(control, x_cutoff[1], x_cutoff[2]) & "treatment" > y_cutoff[2] ~ "top_center",
+        "control" < x_cutoff[1] & "treatment" > y_cutoff[2] ~ "top_left",
+        "control" > x_cutoff[2] & "treatment" > y_cutoff[2] ~ "top_right",
+        "control" < x_cutoff[1] & dplyr::between("treatment", y_cutoff[1], y_cutoff[2]) ~ "middle_left",
+        "control" > x_cutoff[2] & dplyr::between("treatment", y_cutoff[1], y_cutoff[2]) ~ "middle_right",
+        dplyr::between("control", x_cutoff[1], x_cutoff[2]) & dplyr::between("treatment", y_cutoff[1], y_cutoff[2]) ~ "center",
+        TRUE ~ "center" # I don't think this exists but just in case
       )
     ) %>%
-    dplyr::group_by(square) %>%
-    dplyr::arrange(desc(abs(diff))) %>%
-    dplyr::mutate(rank = dplyr::row_number()) %>%
+    dplyr::group_by("square") %>%
+    dplyr::arrange(dplyr::desc(abs(diff))) %>% #abs is super useful here
+    dplyr::mutate(rank = dplyr::row_number()) %>% # Because it's grouped and sorted, row order = rank
     dplyr::ungroup()
 
+  return(tempdf)
+}
+
+
+#' Generate base graph from preprocessed data frame for Nine Squares plot
+#'
+#' @param data data frame as generated from NSbasegraph and processed with
+#'   NSsquares, containing square information and rank per square, as well as
+#'   control and treatment enrichment value columns. Can be filtered by
+#'   min-pval.
+#' @param alpha numerical, transparency of geom_point, default is 0.4
+#' @param shape numerical, shape of geom_point, default is 21
+#' @param size numerical, size of geom_point, default is 2
+#' @param legend logical, indicates whether you want square to be displayed in
+#'   the legend
+#' @param x_cutoff numerical length-2 vector with x axis cutoff values, as from
+#'   NSgencutoff
+#' @param y_cutoff numerical length-2 vector with y axis cutoff values, as from
+#'   NSgencutoff
+#' @param slope_cutoff numerical length-2 vector with diagonal axis cutoff
+#'   values, as from NSgencutoff
+#'
+#' @returns a base Nine Squares graph
+#' @export
+
+NSbasegraph <- function(data,
+                        x_cutoff,
+                        y_cutoff,
+                        slope_cutoff,
+                        size = 2,
+                        alpha = 0.4,
+                        shape = 21,
+                        legend = FALSE) {
+
+  if(!is.logical(legend)){stop("legend needs to be TRUE or FALSE")}
+
   graph <-
-    ggplot2::ggplot(tempdf, ggplot2::aes(x = control, y = treatment)) +
-    ggplot2::geom_point(ggplot2::aes(color = square, fill = square), alpha = alpha, shape = shape) +
+    ggplot2::ggplot(data, ggplot2::aes(x = "control", y = "treatment")) +
+    ggplot2::geom_point(ggplot2::aes(color = "square", fill = "square"),
+                        alpha = alpha,
+                        shape = shape,
+                        size = size) +
     ggplot2::theme_minimal() +
     ggplot2::geom_vline(xintercept = x_cutoff, linetype = "dashed", color = "grey") +
     ggplot2::geom_hline(yintercept = y_cutoff, linetype = "dashed", color = "grey") +
@@ -224,7 +270,7 @@ NSbasegraph <- function(data,
     ) +
     ggplot2::scale_color_manual(
       aesthetics = c("color", "fill"),
-      guide = "none",
+      guide = ifelse(legend, "legend", "none"),
       values = c(
         "center" = "#D3D3D3",
         "neutral_slope" = "#D3D3D3",
@@ -243,6 +289,15 @@ NSbasegraph <- function(data,
 }
 
 
+#' Add labels to a graph
+#'
+#' @param graph a graph
+#' @param xlab x-axis label
+#' @param ylab y-axis label
+#'
+#' @returns a x and y labeled graph
+#' @export
+
 NSaxislabels <- function(graph, xlab, ylab) {
 
   graph <- graph +
@@ -254,6 +309,14 @@ NSaxislabels <- function(graph, xlab, ylab) {
 }
 
 
+#' Add title to graph
+#'
+#' @param graph a graph
+#' @param title a title
+#'
+#' @returns a graph with a title
+#' @export
+
 NStitle <- function(graph, title) {
 
   graph <- graph +
@@ -264,21 +327,135 @@ NStitle <- function(graph, title) {
 
 
 
+NSaddtoplabels <- function(graph, data, top_labeled = 10) {
 
-#' Add Gene of Interest highlights
+  label_df <-
+    data %>%
+    dplyr::filter(rank <= top_labeled)
+
+  graph <-
+    graph +
+    ggrepel::geom_text_repel(
+      data = label_df,
+      mapping = ggplot2::aes(
+        x = "control",
+        y = "treatment",
+        label = "id",
+        color = "square"
+      ),
+      inherit.aes = FALSE,
+      max.overlaps = Inf
+    )
+
+  return(graph)
+}
+
+
+#' Add Genes of Interest (goi) highlights
 #'
-#' @param data temporary data data frame generated with NSbasedf function
-#' @param gene_list vector of gene ids to filter the data frame
-#' @param graph base graph to which add highlights
+#' @param data processed dataframe, needs to be the same fed into NSbasegraph
+#' @param graph graph output of basegraph
+#' @param goi_list vector list of genes of interest
+#' @param goi_auto logical, indicate default processing of points with slightly
+#'   darker colors than the ones in the graph. Pretttyyyyy
+#' @param goi_color highlighted point color, if goi_shape is between 21 and 28 it
+#'   refers to the outline.
+#' @param goi_fill if goi_shape is between 21 and 28, inside part of the point
+#' @param goi_shape numerical (ggplot2 aesthetics), shape of the highlighted point
+#' @param goi_size numerical, size of the highlighted point, default is 2
+#' @param goi_label_color color of the label text, default is black
+#' @param goi_label_size size of the label text, default is 4
+#' @param goi_label_type type of label, either "text" or "label"
 #'
-#' @returns a graph with added highlights
+#' @returns highlighted ggplot graph
 #' @export
-#'
-#' @examples
-NSaddgoi <- function(data, graph, gene_list) {
+
+NSaddgoi <- function(data,
+                     graph,
+                     goi_list,
+                     goi_auto = FALSE,
+                     goi_shape = 21,
+                     goi_color = "black",
+                     goi_fill = "black",
+                     goi_size = 2,
+                     goi_label_type = c("text", "label"),
+                     goi_label_color = "black",
+                     goi_label_size = 4) {
+
+  if(missing(goi_label_type) | goi_label_type %nin% c("text", "label")) {
+    stop("Argument goi_label_type needs to be either 'text' or 'label' ")
+  }
 
   tempdf <- data %>%
-    dplyr::filter(.data$id %in% gene_list)
+    dplyr::filter(.data$id %in% goi_list)
 
-  return(tempdf)
+
+  if(goi_auto) {
+
+    graph <-
+      graph +
+      ggplot2::geom_point(
+        data = tempdf,
+        mapping = ggplot2::aes(x = "control",
+                               y = "treatment",
+                               fill = "square"),
+        shape = goi_shape,
+        size = goi_size,
+        color = goi_color,
+        inherit.aes = FALSE,
+        max.overlaps = Inf
+      ) +
+      ggnewscale::new_scale_fill() +
+      ggplot2::scale_fill_manual(
+        values_dark = c(
+          "center" = "#B8B8B8",
+          "neutral_slope" = "#B8B8B8",
+          "bottom_left" = "#003366",
+          "bottom_center" = "#005599",
+          "bottom_right" = "#2299CC",
+          "middle_left" = "#CC9922",
+          "middle_right" = "#007755",
+          "top_left" = "#DD6622",
+          "top_center" = "#DD2266",
+          "top_right" = "#992266"
+        )
+      )
+
+
+  }
+
+  if(goi_label_type == "text") {
+
+  graph <-
+    graph +
+    ggrepel::geom_text_repel(
+      data = tempdf,
+      mapping = ggplot2::aes(x = "control",
+                             y = "treatment",
+                             label = "id"),
+      color = goi_label_color,
+      size = goi_label_size,
+      inherit.aes = FALSE,
+      max.overlaps = Inf
+    )
+
+  } else if (goi_label_type == "label") {
+
+    graph <-
+      graph +
+      ggrepel::geom_label_repel(
+        data = tempdf,
+        mapping = ggplot2::aes(x = "control",
+                               y = "treatment",
+                               label = "id"),
+        color = goi_label_color,
+        size = goi_label_size,
+        inherit.aes = FALSE,
+        max.overlaps = Inf
+      )
+
+  }
+
+
+  return(graph)
 }

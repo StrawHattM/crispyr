@@ -18,7 +18,15 @@ NineSquares <- function(data,
                         title,
                         xcut,
                         ycut,
-                        slopecut) {
+                        slopecut,
+                        legend,
+                        filename,
+                        goi,
+                        goi_auto,
+                        goi_color,
+                        goi_size,
+                        goi_label_color,
+                        goi_label_size) {
 
   # Build base data frame
   base_data <-
@@ -34,14 +42,14 @@ NineSquares <- function(data,
     NSgencutoff(base_data, scale, force_zero_center)
 
   if (!missing(xcut)) {  ## check for user xcut input
-    if (class(cutoffs$x_cutoff) != "numeric" | length(cutoffs$x_cutoff) != 2) {
+    if (!is.numeric(cutoffs$x_cutoff) | length(cutoffs$x_cutoff) != 2) {
       stop("Argument 'xcut' must be a numerical vector of length two. Leave empty for default calculation using 'scale'")
     }
     cutoffs$x_cutoff <- xcut
   }
 
   if (!missing(ycut)) { ## check for user ycut input
-    if (class(cutoffs$y_cutoff) != "numeric" | length(cutoffs$y_cutoff) != 2) {
+    if (!is.numeric(cutoffs$y_cutoff) | length(cutoffs$y_cutoff) != 2) {
       stop("Argument 'ycut' must be a numerical vector of length two. Leave empty for default calculation using 'scale'")
     }
 
@@ -49,7 +57,7 @@ NineSquares <- function(data,
   }
 
   if (!missing(slopecut)) { ## check for user slopecut input
-    if (class(cutoffs$slope_cutoff) != "numeric" | length(cutoffs$slope_cutoff) != 2) {
+    if (!is.numeric(cutoffs$slope_cutoff) | length(cutoffs$slope_cutoff) != 2) {
       stop("Argument 'slopecut' must be a numerical vector of length two. Leave empty for default calculation using 'scale'")
     }
 
@@ -57,21 +65,56 @@ NineSquares <- function(data,
   }
 
 
-  # p-value filtering
+  # p-value filtering before squares so rank isn't affected
   if (!missing(min_pval)) { ## trigger is optional argument min_pval existing
     base_data <-
       NSfilterpval(base_data, min_pval = min_pval)
   }
 
+  # Determine squares and assign in new col
+
+  base_data <- NSsquares(base_data,
+                         x_cutoff = cutoffs$x_cutoff,
+                         y_cutoff = cutoffs$y_cutoff,
+                         slope_cutoff = cutoffs$slope_cutoff)
+
+  # Save data
+
+  if(!missing(filename)){
+
+    if(is.character(filename)) {
+
+      if(tolower(stringr::str_extract(filename, pattern = ".[:alpha:]{3}$")) != ".txt"){
+        warning("Your filename extension was detected to be different than .txt -
+                the file generated will be a tab-separated file that should be encoded as a .txt")
+      }
+
+      filename <- filename
+
+    } else if (filename & !missing(title)){
+
+      filename <- paste0(getwd(), "/", title, ".txt")
+
+    } else {stop("filename needs to be character")}
+
+    readr::write_delim(x = base_data,
+                       file = filename,
+                       quote = "none",
+                       delim = "\t",
+                       col_names = TRUE)
+  }
+
+
   # Generate base graph
   base_graph <-
     NSbasegraph(
       data = base_data,
+      alpha = alpha,
+      shape = shape,
+      legend = legend,
       x_cutoff = cutoffs$x_cutoff,
       y_cutoff = cutoffs$y_cutoff,
-      slope_cutoff = cutoffs$slope_cutoff,
-      alpha = alpha,
-      shape = shape
+      slope_cutoff = cutoffs$slope_cutoff
     )
 
   # Add axis labels with defaults
@@ -85,11 +128,13 @@ NineSquares <- function(data,
   base_graph <-
     NSaxislabels(base_graph, xlab, ylab)
 
-
   # Add title
-
   if(!missing(title)){
     base_graph <-
       NStitle(base_graph, title)
   }
+
+
+
+
 }

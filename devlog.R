@@ -26,13 +26,17 @@
 
 use_github("StrawHattM/crispyr")
 
-use_mit_licuseense()
+use_mit_license()
 
 use_testthat()
 
 usethis::use_package("dplyr", min_version = TRUE)
 usethis::use_package("ggplot2", min_version = TRUE)
 usethis::use_package("ggrepel", min_version = TRUE)
+usethis::use_package("ggnewscale", min_version = TRUE)
+usethis::use_package("readr", min_version = TRUE)
+usethis::use_package("stringr", min_version = TRUE)
+
 
 usethis::use_import_from("magrittr", "%>%")
 usethis::use_import_from("rlang", ".data")
@@ -94,12 +98,12 @@ test()
 set.seed(42)
 
 data <- data.frame(
-  gene = paste0("Gene", 1:5000),
-  num = sample(1:10, 5000, replace = TRUE),
-  untreated_LFC = stats::rnorm(5000, mean = 0, sd = 3),
-  treated_LFC = stats::rnorm(5000, mean = 0, sd = 3),
-  untreated_pval = stats::runif(5000, min = 0, max = 1),
-  treated_pval = stats::runif(5000, min = 0, max = 1)
+  gene = paste0("Gene", 1:20000),
+  num = sample(1:10, 20000, replace = TRUE),
+  untreated_LFC = stats::rnorm(20000, mean = 0, sd = 3),
+  treated_LFC = stats::rnorm(20000, mean = 0, sd = 3),
+  untreated_pval = stats::runif(20000, min = 0, max = 1),
+  treated_pval = stats::runif(20000, min = 0, max = 1)
 )
 
 base_data <-
@@ -112,19 +116,32 @@ base_data <-
 cutoffs <-
   NSgencutoff(base_data, scale = 2, force_zero_center = "none")
 
-NSbasegraph(data = base_data,
+base_data <-
+  NSsquares(base_data,
             x_cutoff = cutoffs$x_cutoff,
             y_cutoff = cutoffs$y_cutoff,
-            slope_cutoff = cutoffs$slope_cutoff,
+            slope_cutoff = cutoffs$slope_cutoff)
+
+graph_test<-
+NSbasegraph(data = base_data,
             alpha = 0.4,
             shape = 21,
-            xlab,
-            ylab,
-            title,
-            top_labeled = 10)
+            size = 2,
+            x_cutoff = cutoffs$x_cutoff,
+            y_cutoff = cutoffs$y_cutoff,
+            slope_cutoff = cutoffs$slope_cutoff)
 
-
-
+graph_test +
+  ggrepel::geom_text_repel(
+    data = dplyr::filter(base_data, id  %in% c("Gene3062", "Gene405", "Gene1450")),
+    mapping = ggplot2::aes(x = control,
+                           y = treatment,
+                           label = id),
+    colour = "black",
+    size = 3.5,
+    inherit.aes = FALSE,
+    max.overlaps = Inf
+  )
 
 # NineSquares assembly ----------------------------------------------------
 
