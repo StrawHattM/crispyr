@@ -128,31 +128,40 @@ load_chip_file <- function(chip_file, quiet = FALSE) {
 #' @importFrom readr read_csv
 #' @export
 load_sample_manifest <- function(manifest_file,
-                                  col_names = c("sample_barcode", "condition"),
-                                  quiet = FALSE) {
-  if (!file.exists(manifest_file)) {
-    rlang::abort(c(
-      "Manifest file not found.",
-      "x" = glue::glue("File: {manifest_file}")
-    ))
-  }
-
-  if (length(col_names) != 2) {
-    rlang::abort("col_names must be a character vector of length 2")
-  }
-
-  manifest <- readr::read_csv(
-    manifest_file,
-    col_names = col_names,
-    col_types = "cc",
-    progress = !quiet
-  )
-
-  if (!quiet) {
-    cli::cli_inform(c(
-      "*" = "Loaded sample manifest with {nrow(manifest)} samples"
-    ))
-  }
-
-  manifest
-}
+                                   col_names = c("sample_barcode", "condition"),
+                                   quiet = FALSE) {
+   if (!file.exists(manifest_file)) {
+     rlang::abort(c(
+       "Manifest file not found.",
+       "x" = glue::glue("File: {manifest_file}")
+     ))
+   }
+ 
+   if (length(col_names) != 2) {
+     rlang::abort("col_names must be a character vector of length 2")
+   }
+ 
+   # Read the CSV file (auto-detect types and headers)
+   manifest <- readr::read_csv(
+     manifest_file,
+     progress = !quiet
+   )
+ 
+   # Select only the first two columns (sample_barcode and condition)
+   # This works regardless of the actual column names in the file
+   manifest <- dplyr::select(manifest, 1, 2)
+   
+   # Explicitly rename the columns to the expected names
+   colnames(manifest) <- col_names
+   
+   # Convert to data.table to ensure proper handling downstream
+   manifest <- data.table::as.data.table(manifest)
+ 
+   if (!quiet) {
+     cli::cli_inform(c(
+       "*" = "Loaded sample manifest with {nrow(manifest)} samples"
+     ))
+   }
+ 
+   manifest
+ }

@@ -10,10 +10,10 @@
 # - Very large screens (100M+ reads): 20-40 minutes
 # ====================================================================
 
-library(crispyr)
+devtools::load_all()
 
 # Data directory with subset example
-data_dir <- "/d/Bibliotecas/Biologia/crispyr_fastq/example_data/subset_example"
+data_dir <- "D:/Bibliotecas/Biologia/crispyr_fastq/example_data/subset_example"
 
 # File paths
 fastq_files <- paste0(data_dir, "/subset_sample.fastq.gz")

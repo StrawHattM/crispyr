@@ -27,53 +27,102 @@
 #' @importFrom data.table merge.data.table
 #' @export
 aggregate_by_sample_barcode <- function(mapped_reads,
-                                        sample_manifest,
-                                        keep_unmatched_samples = FALSE,
-                                        quiet = FALSE) {
-  # Convert to data.table if needed
-  if (!data.table::is.data.table(mapped_reads)) {
-    mapped_reads <- data.table::as.data.table(mapped_reads)
-  }
+                                         sample_manifest,
+                                         keep_unmatched_samples = FALSE,
+                                         quiet = FALSE) {
+   # Convert to data.table if needed
+   if (!data.table::is.data.table(mapped_reads)) {
+     mapped_reads <- data.table::as.data.table(mapped_reads)
+   }
+ 
+   manifest_dt <- data.table::as.data.table(sample_manifest)
+ 
+   if (!quiet) {
+     cli::cli_inform(c(
+       "i" = "Mapping sample barcodes to conditions"
+     ))
+   }
 
-  manifest_dt <- data.table::as.data.table(sample_manifest)
-
-  if (!quiet) {
-    cli::cli_inform(c(
-      "i" = "Mapping sample barcodes to conditions"
-    ))
-  }
-
-  # Perform left join on sample barcode
-  result <- data.table::merge.data.table(
-    mapped_reads,
-    manifest_dt,
-    by = "sample_barcode",
-    all.x = TRUE,
-    sort = FALSE
-  )
-
-  # Mark which samples were matched
-  result[, sample_barcode_matched := !is.na(condition)]
-
-  # Optionally remove unmatched samples
-  if (!keep_unmatched_samples) {
-    result <- result[sample_barcode_matched == TRUE]
-  }
-
-  # Summary statistics
-  n_matched <- result[sample_barcode_matched == TRUE, .N]
-  n_unmatched <- result[sample_barcode_matched == FALSE, .N]
-
-  if (!quiet) {
-    cli::cli_inform(c(
-      "*" = "Sample barcode aggregation complete",
-      "i" = "Reads with matched samples: {n_matched}",
-      "i" = "Reads with unmatched samples: {n_unmatched}"
-    ))
-  }
-
-  result
-}
+   # DEBUG: Check input data
+   if (!quiet) {
+     n_reads <- nrow(mapped_reads)
+     n_unique_sample_bc <- data.table::uniqueN(mapped_reads$sample_barcode, na.rm = TRUE)
+     n_manifest <- nrow(manifest_dt)
+     n_unique_manifest_bc <- data.table::uniqueN(manifest_dt$sample_barcode, na.rm = TRUE)
+     
+     cli::cli_inform(c(
+       "=" = "aggregate_by_sample_barcode debug info:",
+       "i" = "Input reads: {n_reads} rows, {n_unique_sample_bc} unique sample_barcodes",
+       "i" = "Manifest: {n_manifest} rows, {n_unique_manifest_bc} unique sample_barcodes"
+     ))
+   }
+ 
+   # Perform left join on sample barcode
+   result <- data.table::merge.data.table(
+     mapped_reads,
+     manifest_dt,
+     by = "sample_barcode",
+     all.x = TRUE,
+     sort = FALSE
+   )
+ 
+   # DEBUG: Check what happened with the merge
+   if (!quiet) {
+     has_condition_col <- "condition" %in% names(result)
+     if (has_condition_col) {
+       n_na_condition <- sum(is.na(result$condition))
+       n_not_na_condition <- sum(!is.na(result$condition))
+       cli::cli_inform(c(
+         "i" = "Merged result has 'condition' column",
+         "i" = "  NA conditions: {n_na_condition}",
+         "i" = "  Non-NA conditions: {n_not_na_condition}"
+       ))
+     } else {
+       cli::cli_inform(c(
+         "x" = "ERROR: 'condition' column NOT found after merge!",
+         "i" = "Columns in result: {paste(names(result), collapse=', ')}"
+       ))
+     }
+   }
+ 
+   # Mark which samples were matched
+   result[, sample_barcode_matched := !is.na(condition)]
+ 
+   if (!quiet) {
+     n_matched_after_merge <- sum(result$sample_barcode_matched, na.rm = TRUE)
+     cli::cli_inform(c(
+       "i" = "Matched samples in merged data: {n_matched_after_merge}"
+     ))
+   }
+ 
+    # Optionally remove unmatched samples
+    if (!keep_unmatched_samples) {
+      result <- result[sample_barcode_matched == TRUE]
+    }
+ 
+    # Check if result is empty
+    if (nrow(result) == 0) {
+      rlang::abort(c(
+        "No reads matched to sample manifest.",
+        "x" = "aggregate_by_sample_barcode returned empty dataset",
+        "i" = "Check that sample_barcode values in mapped_reads match the sample_manifest"
+      ))
+    }
+ 
+    # Summary statistics
+    n_matched <- result[sample_barcode_matched == TRUE, .N]
+    n_unmatched <- result[sample_barcode_matched == FALSE, .N]
+ 
+   if (!quiet) {
+     cli::cli_inform(c(
+       "*" = "Sample barcode aggregation complete",
+       "i" = "Reads with matched samples: {n_matched}",
+       "i" = "Reads with unmatched samples: {n_unmatched}"
+     ))
+   }
+ 
+   result
+ }
 
 
 #' Create Count Matrix

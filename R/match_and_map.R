@@ -88,15 +88,15 @@ match_constructs <- function(extracted_barcodes,
     )
   }
 
-  # Combine with failed extractions (mark as no_match)
-  failed_extractions <- extracted_barcodes[
-    extraction_status %nin% c("success", "no_sample_barcode")
-  ] %>%
-    dplyr::mutate(
-      construct_id = NA_character_,
-      match_type = "no_match",
-      match_quality = 0
-    )
+   # Combine with failed extractions (mark as no_match)
+   failed_extractions <- extracted_barcodes[
+     extraction_status %nin% c("success", "no_sample_barcode")
+   ]
+   failed_extractions[, `:=`(
+     construct_id = NA_character_,
+     match_type = "no_match",
+     match_quality = 0
+   )]
 
   result <- data.table::rbindlist(
     list(result, failed_extractions),
@@ -133,17 +133,25 @@ match_constructs_exact <- function(extracted_barcodes,
                                    reference_library,
                                    quiet = FALSE) {
   # Convert reference to data.table with key
-  ref_dt <- data.table::as.data.table(reference_library)
-  data.table::setkey(ref_dt, barcode)
+   ref_dt <- data.table::as.data.table(reference_library)
+   data.table::setkey(ref_dt, barcode)
 
-  # Perform the merge
-  result <- data.table::merge.data.table(
-    extracted_barcodes,
-    ref_dt,
-    by = "barcode",
-    all.x = TRUE,
-    sort = FALSE
-  )
+   # Rename construct_barcode to barcode for merging
+   extracted_barcodes <- extracted_barcodes[, barcode := construct_barcode]
+
+   # Perform the merge
+   result <- data.table::merge.data.table(
+     extracted_barcodes,
+     ref_dt,
+     by = "barcode",
+     all.x = TRUE,
+     sort = FALSE
+   )
+
+   # Ensure sample_barcode is preserved (it should be from all.x = TRUE)
+   if (!"sample_barcode" %in% names(result)) {
+     result[, sample_barcode := extracted_barcodes[match(barcode, extracted_barcodes$barcode), sample_barcode]]
+   }
 
   # Add match information
   result[, match_type := ifelse(
@@ -309,24 +317,19 @@ map_constructs_to_genes <- function(matched_barcodes,
     ))
   }
 
-  # Perform left join on barcode
-  result <- data.table::merge.data.table(
-    matched_barcodes,
-    chip_dt,
-    by = "barcode",
-    all.x = TRUE,
-    allow.cartesian = TRUE,  # Allow one-to-many joins
-    sort = FALSE
-  )
+   # Perform left join on barcode
+   result <- data.table::merge.data.table(
+     matched_barcodes,
+     chip_dt,
+     by = "barcode",
+     all.x = TRUE,
+     allow.cartesian = TRUE,  # Allow one-to-many joins
+     sort = FALSE
+   )
 
-  # Count genes per barcode
-  result <- result %>%
-    dplyr::group_by(barcode) %>%
-    dplyr::mutate(
-      barcode_to_genes = dplyr::n_distinct(gene_id, na.rm = TRUE)
-    ) %>%
-    dplyr::ungroup() %>%
-    data.table::as.data.table()
+   # Count genes per barcode using data.table for efficiency
+   # (avoid dplyr pipe which might drop unexpected columns)
+   result <- result[, barcode_to_genes := dplyr::n_distinct(gene_id, na.rm = TRUE), by = barcode]
 
   # Summary statistics
   n_with_genes <- result[!is.na(gene_id), .N]

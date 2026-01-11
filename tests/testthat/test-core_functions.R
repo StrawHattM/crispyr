@@ -124,3 +124,37 @@ test_that("calculate_qc_metrics handles valid input", {
   # Check per-sample metrics
   expect_true(nrow(qc$per_sample_metrics) > 0)
 })
+
+
+test_that("aggregate_by_sample_barcode correctly maps samples", {
+  # Create test data with mapped reads
+  mapped_reads <- data.table::data.table(
+    read_id = c("read1", "read2", "read3"),
+    construct_barcode = c("AAAAAAAAAAAATGCATTCT", "AAAAAAAAATAAGCTCACCC", "AAAAAAAATCCTGTCGCCCA"),
+    sample_barcode = c("TTGAACCG", "AATCCAGC", "TTGAACCG"),
+    construct_id = c("cid1", "cid2", "cid3"),
+    gene_id = c("gene1", "gene2", "gene1"),
+    gene_symbol = c("GENE1", "GENE2", "GENE1")
+  )
+
+  # Create test manifest
+  sample_manifest <- data.table::data.table(
+    sample_barcode = c("TTGAACCG", "AATCCAGC"),
+    condition = c("Day0", "Day0")
+  )
+
+  # Aggregate
+  result <- aggregate_by_sample_barcode(mapped_reads, sample_manifest, quiet = TRUE)
+
+  # Check result is not empty
+  expect_true(nrow(result) > 0)
+
+  # Check all columns preserved
+  expect_true("sample_barcode" %in% names(result))
+  expect_true("construct_barcode" %in% names(result))
+  expect_true("condition" %in% names(result))
+
+  # Check conditions are assigned correctly
+  expect_equal(result[sample_barcode == "TTGAACCG"]$condition[1], "Day0")
+  expect_equal(result[sample_barcode == "AATCCAGC"]$condition[1], "Day0")
+})

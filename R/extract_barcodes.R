@@ -124,10 +124,11 @@ extract_barcodes_from_fastq <- function(fastq_files,
     # Read FASTQ file
     fastq_data <- ShortRead::readFastq(fastq_file)
 
-    # Extract sequences and qualities
-    sequences <- as.character(fastq_data@sread)
-    quality_strings <- as.character(fastq_data@quality)
-    read_ids <- as.character(fastq_data@id)
+     # Extract sequences and qualities
+     sequences <- as.character(fastq_data@sread)
+     quality_obj <- Biostrings::quality(fastq_data)
+     quality_strings <- as.character(quality_obj@quality)
+     read_ids <- as.character(fastq_data@id)
 
     # Convert quality strings to numeric scores
     if (!is.null(min_quality_score)) {
