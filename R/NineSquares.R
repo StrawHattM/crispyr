@@ -21,6 +21,7 @@ NineSquares <- function(data,
                         slopecut,
                         legend,
                         filename,
+                        groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left"),
                         goi,
                         goi_auto,
                         goi_color,
@@ -133,6 +134,15 @@ NineSquares <- function(data,
     base_graph <-
       NStitle(base_graph, title)
   }
+
+  # Add labels for top genes in each square
+
+  if(!is.character(groups_labeled)) {
+    stop("'groups_labeled' needs to be a character vector.")
+  }
+
+
+  # Add genes of interest highlights
 
 
 

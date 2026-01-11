@@ -197,23 +197,27 @@ NSsquares <- function(data, x_cutoff, y_cutoff, slope_cutoff){
 
   tempdf <- data %>%
     dplyr::mutate(
-      diff = "treatment" - "control",
+      diff = .data$treatment - .data$control,
       square = dplyr::case_when(
-        dplyr::between("treatment" - "control", slope_cutoff[1], slope_cutoff[2]) ~ "neutral_slope", # important to be first
-        "control" < x_cutoff[1] & "treatment" < y_cutoff[1] ~ "bottom_left",
-        "control" > x_cutoff[2] & "treatment" < y_cutoff[1] ~ "bottom_right",
-        dplyr::between(control, x_cutoff[1], x_cutoff[2]) & "treatment" < y_cutoff[1] ~ "bottom_center",
-        dplyr::between(control, x_cutoff[1], x_cutoff[2]) & "treatment" > y_cutoff[2] ~ "top_center",
-        "control" < x_cutoff[1] & "treatment" > y_cutoff[2] ~ "top_left",
-        "control" > x_cutoff[2] & "treatment" > y_cutoff[2] ~ "top_right",
-        "control" < x_cutoff[1] & dplyr::between("treatment", y_cutoff[1], y_cutoff[2]) ~ "middle_left",
-        "control" > x_cutoff[2] & dplyr::between("treatment", y_cutoff[1], y_cutoff[2]) ~ "middle_right",
-        dplyr::between("control", x_cutoff[1], x_cutoff[2]) & dplyr::between("treatment", y_cutoff[1], y_cutoff[2]) ~ "center",
+        dplyr::between(.data$treatment - .data$control, slope_cutoff[1], slope_cutoff[2]) ~ "neutral_slope", # important to be first
+        .data$control < x_cutoff[1] & .data$treatment < y_cutoff[1] ~ "bottom_left",
+        .data$control > x_cutoff[2] & .data$treatment < y_cutoff[1] ~ "bottom_right",
+        dplyr::between(.data$control, x_cutoff[1], x_cutoff[2]) & .data$treatment < y_cutoff[1] ~ "bottom_center",
+        dplyr::between(.data$control, x_cutoff[1], x_cutoff[2]) & .data$treatment > y_cutoff[2] ~ "top_center",
+        .data$control < x_cutoff[1] & .data$treatment > y_cutoff[2] ~ "top_left",
+        .data$control > x_cutoff[2] & .data$treatment > y_cutoff[2] ~ "top_right",
+        .data$control < x_cutoff[1] & dplyr::between(.data$treatment, y_cutoff[1], y_cutoff[2]) ~ "middle_left",
+        .data$control > x_cutoff[2] & dplyr::between(.data$treatment, y_cutoff[1], y_cutoff[2]) ~ "middle_right",
+        dplyr::between(.data$control, x_cutoff[1], x_cutoff[2]) & dplyr::between(.data$treatment, y_cutoff[1], y_cutoff[2]) ~ "center",
         TRUE ~ "center" # I don't think this exists but just in case
       )
     ) %>%
-    dplyr::group_by("square") %>%
-    dplyr::arrange(dplyr::desc(abs(diff))) %>% #abs is super useful here
+    dplyr::group_by(.data$square) %>%
+    dplyr::mutate(euclid_dist = sqrt(.data$control^2 + .data$treatment^2), #calculate euclidean distance to 0
+                  # perp_dist = abs(diff) / sqrt(2), # perpendicular distance to the diagonal
+                  # score = perp_dist * (1 + euclid_dist / max(euclid_dist, na.rm = TRUE)) # composite score
+                  ) %>%
+    dplyr::arrange(dplyr::desc(.data$euclid_dist)) %>%
     dplyr::mutate(rank = dplyr::row_number()) %>% # Because it's grouped and sorted, row order = rank
     dplyr::ungroup()
 
@@ -254,16 +258,16 @@ NSbasegraph <- function(data,
   if(!is.logical(legend)){stop("legend needs to be TRUE or FALSE")}
 
   graph <-
-    ggplot2::ggplot(data, ggplot2::aes(x = "control", y = "treatment")) +
-    ggplot2::geom_point(ggplot2::aes(color = "square", fill = "square"),
+    ggplot2::ggplot(data, ggplot2::aes(x = .data$control, y = .data$treatment)) +
+    ggplot2::geom_point(ggplot2::aes(color = .data$square, fill = .data$square),
                         alpha = alpha,
                         shape = shape,
                         size = size) +
     ggplot2::theme_minimal() +
-    ggplot2::geom_vline(xintercept = x_cutoff, linetype = "dashed", color = "grey") +
-    ggplot2::geom_hline(yintercept = y_cutoff, linetype = "dashed", color = "grey") +
-    ggplot2::geom_abline(slope = 1, intercept = slope_cutoff[1], linetype = "dashed", color = "grey") +
-    ggplot2::geom_abline(slope = 1, intercept = slope_cutoff[2], linetype = "dashed", color = "grey") +
+    ggplot2::geom_vline(xintercept = x_cutoff, linetype = "dashed", color = "grey60") +
+    ggplot2::geom_hline(yintercept = y_cutoff, linetype = "dashed", color = "grey60") +
+    ggplot2::geom_abline(slope = 1, intercept = slope_cutoff[1], linetype = "dashed", color = "grey60") +
+    ggplot2::geom_abline(slope = 1, intercept = slope_cutoff[2], linetype = "dashed", color = "grey60") +
     ggplot2::labs(
       color = "Group",
       fill = "Group"
@@ -327,25 +331,49 @@ NStitle <- function(graph, title) {
 
 
 
-NSaddtoplabels <- function(graph, data, top_labeled = 10) {
+#' Add soft labels depicting the top performing (by euclidian distance) genes
+#' for each square
+#'
+#' @param graph graph output of basegraph
+#' @param data processed dataframe, needs to be the same fed into NSbasegraph
+#' @param groups_labeled square groups where top n genes will be labeled.
+#'   Default is c("top_center", "bottom_center", "middle_right", "middle_left")
+#' @param top_labeled number of genes from the top by euclidian distance to be labeled
+#'
+#' @returns a ggplot2 graph with labeled points
+#' @export
 
+NSaddtoplabels <- function(graph,
+                           data,
+                           groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left"),
+                           top_labeled = 10) {
   label_df <-
     data %>%
-    dplyr::filter(rank <= top_labeled)
+    dplyr::filter(.data$square %in% groups_labeled) %>%
+    dplyr::filter(.data$rank <= top_labeled)
 
   graph <-
     graph +
     ggrepel::geom_text_repel(
       data = label_df,
       mapping = ggplot2::aes(
-        x = "control",
-        y = "treatment",
-        label = "id",
-        color = "square"
+        x = .data$control,
+        y = .data$treatment,
+        label = .data$id,
+        color = .data$square
       ),
+      size = 1.5,
       inherit.aes = FALSE,
-      max.overlaps = Inf
-    )
+      max.overlaps = Inf,
+      min.segment.length = 0.1,
+      position = ggpp::position_nudge_center(x = 2,
+                                             y = 2,
+                                             center_x = 0,
+                                             center_y = 0,
+                                             direction = "radial",
+                                             obey_grouping = FALSE)
+    ) +
+    ggplot2::expand_limits(x = c(-10, 10))
 
   return(graph)
 }
@@ -382,8 +410,8 @@ NSaddgoi <- function(data,
                      goi_label_color = "black",
                      goi_label_size = 4) {
 
-  if(missing(goi_label_type) | goi_label_type %nin% c("text", "label")) {
-    stop("Argument goi_label_type needs to be either 'text' or 'label' ")
+  if(missing(goi_label_type)) {
+    goi_label_type <- "label"
   }
 
   tempdf <- data %>%
@@ -394,20 +422,20 @@ NSaddgoi <- function(data,
 
     graph <-
       graph +
+      ggnewscale::new_scale_fill() +
       ggplot2::geom_point(
         data = tempdf,
-        mapping = ggplot2::aes(x = "control",
-                               y = "treatment",
-                               fill = "square"),
-        shape = goi_shape,
+        mapping = ggplot2::aes(x = .data$control,
+                               y = .data$treatment,
+                               fill = .data$square),
+        shape = 21,
         size = goi_size,
         color = goi_color,
-        inherit.aes = FALSE,
-        max.overlaps = Inf
+        inherit.aes = FALSE
       ) +
-      ggnewscale::new_scale_fill() +
       ggplot2::scale_fill_manual(
-        values_dark = c(
+        guide = "none",
+        values = c(
           "center" = "#B8B8B8",
           "neutral_slope" = "#B8B8B8",
           "bottom_left" = "#003366",
@@ -436,8 +464,16 @@ NSaddgoi <- function(data,
       color = goi_label_color,
       size = goi_label_size,
       inherit.aes = FALSE,
-      max.overlaps = Inf
-    )
+      max.overlaps = Inf,
+      min.segment.length = 0.4,
+      position = ggpp::position_nudge_center(x = 2,
+                                             y = 2,
+                                             center_x = 0,
+                                             center_y = 0,
+                                             direction = "radial",
+                                             obey_grouping = FALSE)
+    ) +
+    ggplot2::expand_limits(x = c(-10, 10))
 
   } else if (goi_label_type == "label") {
 
@@ -445,14 +481,23 @@ NSaddgoi <- function(data,
       graph +
       ggrepel::geom_label_repel(
         data = tempdf,
-        mapping = ggplot2::aes(x = "control",
-                               y = "treatment",
-                               label = "id"),
+        mapping = ggplot2::aes(x = .data$control,
+                               y = .data$treatment,
+                               label = .data$id),
         color = goi_label_color,
         size = goi_label_size,
         inherit.aes = FALSE,
-        max.overlaps = Inf
-      )
+        max.overlaps = Inf,
+        min.segment.length = 0.4,
+        label.padding = 0.2,
+        position = ggpp::position_nudge_center(x = 2,
+                                               y = 2,
+                                               center_x = 0,
+                                               center_y = 0,
+                                               direction = "radial",
+                                               obey_grouping = FALSE)
+      ) +
+      ggplot2::expand_limits(x = c(-10, 10))
 
   }
 

@@ -40,6 +40,7 @@ usethis::use_package("stringr", min_version = TRUE)
 
 usethis::use_import_from("magrittr", "%>%")
 usethis::use_import_from("rlang", ".data")
+usethis::use_import_from("ggpp", "position_nudge_center")
 
 
 # First function: %nin% ---------------------------------------------------
@@ -122,26 +123,26 @@ base_data <-
             y_cutoff = cutoffs$y_cutoff,
             slope_cutoff = cutoffs$slope_cutoff)
 
-graph_test<-
-NSbasegraph(data = base_data,
-            alpha = 0.4,
-            shape = 21,
-            size = 2,
-            x_cutoff = cutoffs$x_cutoff,
-            y_cutoff = cutoffs$y_cutoff,
-            slope_cutoff = cutoffs$slope_cutoff)
+base_graph<-
+  NSbasegraph(data = base_data,
+              alpha = 0.4,
+              shape = 21,
+              size = 2,
+              x_cutoff = cutoffs$x_cutoff,
+              y_cutoff = cutoffs$y_cutoff,
+              slope_cutoff = cutoffs$slope_cutoff)
+# graph_test
 
-graph_test +
-  ggrepel::geom_text_repel(
-    data = dplyr::filter(base_data, id  %in% c("Gene3062", "Gene405", "Gene1450")),
-    mapping = ggplot2::aes(x = control,
-                           y = treatment,
-                           label = id),
-    colour = "black",
-    size = 3.5,
-    inherit.aes = FALSE,
-    max.overlaps = Inf
-  )
+# base_graph_toplabels <-
+  NSaddtoplabels(base_graph, data = base_data, top_labeled = 5)
+
+
+graph_test %>%
+  NSaddgoi(data = base_data,
+           graph = graph_test,
+           goi_list = c("Gene2994", "Gene405", "Gene1450", "Gene592", "Gene14261"),
+           goi_auto = TRUE)
+
 
 # NineSquares assembly ----------------------------------------------------
 
