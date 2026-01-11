@@ -12,7 +12,7 @@ NSaddgoi(
   goi_shape = 21,
   goi_color = "black",
   goi_fill = "black",
-  goi_size = 2,
+  goi_size = 2.5,
   goi_label_type = c("text", "label"),
   goi_label_color = "black",
   goi_label_size = 4

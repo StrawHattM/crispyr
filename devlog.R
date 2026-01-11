@@ -149,3 +149,19 @@ graph_test %>%
 
 usethis::use_r("NineSquares")
 
+NineSquares(data,
+            untreated_LFC,
+            treated_LFC,
+            untreated_pval,
+            treated_pval,
+            # min_pval = 0.25,
+            scale = 2,
+            shape = 15,
+            top_labeled = 10,
+            xlab = "Stupidly Awesome",
+            ylab = "Awesomely Stupid",
+            title = "No way you're doing this?",
+            legend = TRUE,
+            filename = "testing_whynot",
+            groups_labeled = c("top_center", "bottom_center"),
+            goi = c("Gene2994", "Gene405", "Gene1450", "Gene592", "Gene14261"))

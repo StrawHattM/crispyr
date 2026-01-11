@@ -362,7 +362,7 @@ NSaddtoplabels <- function(graph,
         label = .data$id,
         color = .data$square
       ),
-      size = 1.5,
+      size = 3,
       inherit.aes = FALSE,
       max.overlaps = Inf,
       min.segment.length = 0.1,
@@ -405,7 +405,7 @@ NSaddgoi <- function(data,
                      goi_shape = 21,
                      goi_color = "black",
                      goi_fill = "black",
-                     goi_size = 2,
+                     goi_size = 2.5,
                      goi_label_type = c("text", "label"),
                      goi_label_color = "black",
                      goi_label_size = 4) {
@@ -434,6 +434,7 @@ NSaddgoi <- function(data,
         inherit.aes = FALSE
       ) +
       ggplot2::scale_fill_manual(
+        aesthetics = c("color", "fill"),
         guide = "none",
         values = c(
           "center" = "#B8B8B8",
@@ -448,8 +449,20 @@ NSaddgoi <- function(data,
           "top_right" = "#992266"
         )
       )
+  } else {
 
-
+    graph <-
+      graph +
+      ggplot2::geom_point(
+        data = tempdf,
+        mapping = ggplot2::aes(x = .data$control,
+                               y = .data$treatment),
+        shape = goi_shape,
+        size = goi_size,
+        color = goi_color,
+        fill = goi_fill,
+        inherit.aes = FALSE
+      )
   }
 
   if(goi_label_type == "text") {
@@ -466,6 +479,7 @@ NSaddgoi <- function(data,
       inherit.aes = FALSE,
       max.overlaps = Inf,
       min.segment.length = 0.4,
+      show.legend = FALSE,
       position = ggpp::position_nudge_center(x = 2,
                                              y = 2,
                                              center_x = 0,
@@ -490,6 +504,7 @@ NSaddgoi <- function(data,
         max.overlaps = Inf,
         min.segment.length = 0.4,
         label.padding = 0.2,
+        show.legend = FALSE,
         position = ggpp::position_nudge_center(x = 2,
                                                y = 2,
                                                center_x = 0,
