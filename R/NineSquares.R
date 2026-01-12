@@ -9,7 +9,7 @@
 #'   column should be number of sgRNAs.
 #' @param control <[`tidy-select`][dplyr_tidy_select]> control enrichment score
 #'   column, will be plotted on x axis. Must be numerical.
-#' @param treament <[`tidy-select`][dplyr_tidy_select]> treatment enrichment
+#' @param treatment <[`tidy-select`][dplyr_tidy_select]> treatment enrichment
 #'   score column, will be plotted on y axis. Must be numerical.
 #' @param ctrl_pval <[`tidy-select`][dplyr_tidy_select]> control pvalue /
 #'   p.adjusted / FDR column. Must be numerical.
@@ -59,7 +59,7 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' set.seed(42)
 #'
 #' data <- data.frame(
@@ -80,13 +80,12 @@
 #'   scale = 2,
 #'   shape = 15,
 #'   top_labeled = 10,
-#'   xlab = "Stupidly Awesome",
-#'   ylab = "Awesomely Stupid",
-#'   title = "No way you're doing this?",
-#'   legend = TRUE,
-#'   filename = "testing_whynot",
+#'   xlab = "x axis label",
+#'   ylab = "x axis label",
+#'   title = "Example Title",
 #'   groups_labeled = c("top_center", "bottom_center"),
 #'   goi = c("Gene2994", "Gene405", "Gene1450", "Gene592", "Gene14261"))
+#'   }
 
 NineSquares <- function(data,
                         control,

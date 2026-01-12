@@ -46,6 +46,9 @@ column should be number of sgRNAs.}
 \item{control}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> control enrichment score
 column, will be plotted on x axis. Must be numerical.}
 
+\item{treatment}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> treatment enrichment
+score column, will be plotted on y axis. Must be numerical.}
+
 \item{ctrl_pval}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> control pvalue /
 p.adjusted / FDR column. Must be numerical.}
 
@@ -115,9 +118,6 @@ scale * standard deviation of treatment - control}
 \item{goi_label_color}{character, color of the label text, default is "black".}
 
 \item{goi_label_size}{character, size of the label text, default is 4.}
-
-\item{treament}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> treatment enrichment
-score column, will be plotted on y axis. Must be numerical.}
 }
 \value{
 a ggplot2 object
@@ -126,7 +126,7 @@ a ggplot2 object
 Create and annotate a Nine Squares Plot
 }
 \examples{
-
+\dontrun{
 set.seed(42)
 
 data <- data.frame(
@@ -147,11 +147,10 @@ NineSquares(data,
   scale = 2,
   shape = 15,
   top_labeled = 10,
-  xlab = "Stupidly Awesome",
-  ylab = "Awesomely Stupid",
-  title = "No way you're doing this?",
-  legend = TRUE,
-  filename = "testing_whynot",
+  xlab = "x axis label",
+  ylab = "x axis label",
+  title = "Example Title",
   groups_labeled = c("top_center", "bottom_center"),
   goi = c("Gene2994", "Gene405", "Gene1450", "Gene592", "Gene14261"))
+  }
 }
