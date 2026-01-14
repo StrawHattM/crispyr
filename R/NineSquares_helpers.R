@@ -352,6 +352,12 @@ NSaddtoplabels <- function(graph,
     dplyr::filter(.data$square %in% groups_labeled) %>%
     dplyr::filter(.data$rank <= top_labeled)
 
+  nudge_distance <-
+    mean(
+        range(data$control, na.rm = TRUE)[2] - range(data$control, na.rm = TRUE)[1],
+        range(data$treatment, na.rm = TRUE)[2] - range(data$treatment, na.rm = TRUE)[1]
+      ) / 10
+
   graph <-
     graph +
     ggrepel::geom_text_repel(
@@ -366,14 +372,13 @@ NSaddtoplabels <- function(graph,
       inherit.aes = FALSE,
       max.overlaps = Inf,
       min.segment.length = 0.1,
-      position = ggpp::position_nudge_center(x = 2,
-                                             y = 2,
+      position = ggpp::position_nudge_center(x = nudge_distance,
+                                             y = nudge_distance,
                                              center_x = 0,
                                              center_y = 0,
                                              direction = "radial",
                                              obey_grouping = FALSE)
-    ) +
-    ggplot2::expand_limits(x = c(-10, 10))
+    )
 
   return(graph)
 }

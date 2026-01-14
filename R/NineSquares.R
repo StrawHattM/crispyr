@@ -157,8 +157,10 @@ NineSquares <- function(data,
 
   # p-value filtering before squares so rank isn't affected
   if (!missing(min_pval)) { ## trigger is optional argument min_pval existing
+
     base_data <-
       NSfilterpval(base_data, min_pval = min_pval)
+
   }
 
   # Determine squares and assign in new col

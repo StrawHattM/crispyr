@@ -1,4 +1,3 @@
-
 #' Import RRA Results
 #'
 #' @param RRA_dir Path to the directory containing RRA results folders.
@@ -53,35 +52,35 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
 #' @export
 
 
-BuildRRAdz <- function(objects = NULL) {
-
-  # silences check notes
-  utils::globalVariables(".")
+BuildRRAdz <- function(objects = NULL, order = NULL) {
 
   if(is.null(objects)) {
-  # Get all RRA day 0 objects
-  rra_day0_objs <- stringr::str_subset(ls(), pattern = "^rra_.*([dD]|[dD]ay)0_.+^")
+    # Get all RRA day 0 objects
+    day0_objs <- stringr::str_subset(ls(envir = .GlobalEnv), pattern = "^rra_.*[dD]|[dD]ay0_.+^")
   } else {
-    rra_day0_objs <- objects
+    day0_objs <- objects
+  }
+
+  if (length(day0_objs) == 0) {
+    stop("No RRA day 0 objects found matching pattern '^rra_.*[dD]|[dD]ay0_.*'")
   }
 
   # Obtain label from each comparison for further prefix
   prefixes <-
-    stringr::str_replace_all(rra_day0_objs, "^rra_.*([dD]|[dD]ay)0_", "") %>%
-    paste0(.,"_")
+    stringr::str_replace_all(day0_objs, "^rra_.*([dD]|[dD]ay)0_", "")
 
   # Generate a list of built dataframes with minimum pvalue and fdr for each gene
 
   df_list<-
-    lapply(1:length(rra_day0_objs), function(i) {
+    lapply(seq_along(day0_objs), function(i) {
 
       temp_df <-
-        get(rra_day0_objs[i]) %>%
+        get(day0_objs[i], envir = .GlobalEnv) %>%
         dplyr::rowwise() %>%
         dplyr::mutate(min_pval = min(dplyr::c_across(dplyr::contains("p_value"))),
                       min_fdr = min(dplyr::c_across(dplyr::contains("fdr")))) %>%
         dplyr::select(.data$id, .data$num, .data$pos_lfc, .data$min_pval, .data$min_fdr) %>%
-        dplyr::rename_with(.cols = 2:5, .fn = ~ stringr::str_replace_all(., "pos|min", prefixes[1]))
+        dplyr::rename_with(.cols = 2:5, .fn = ~ stringr::str_replace_all(., "pos|min", prefixes[i]))
 
       return(temp_df)
     })
@@ -89,5 +88,30 @@ BuildRRAdz <- function(objects = NULL) {
   # Now we merge them all together by id and num
   dz_df <- purrr::reduce(df_list, dplyr::full_join, by = c("id", "num"))
 
+
+  # Reorder columns if order parameter is provided
+  if(!is.null(order)) {
+
+    if(is.factor(order)) {
+      order_levels <- levels(order)
+    }
+    else if(is.character(order)) {
+      order_levels <- order
+    }
+    else {
+      stop("order parameter must be a character vector or factor to order by.")
+    }
+
+    # Reorder columns
+    dz_df <- dz_df %>%
+      dplyr::select(
+        .data$id,
+        .data$num,
+        !!!purrr::map(order_levels, ~ dplyr::starts_with(paste0(.x, "_")))
+      )
+
+  }
+
   return(dz_df)
+
 }
