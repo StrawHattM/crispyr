@@ -86,7 +86,7 @@ BuildRRAdz <- function(objects = NULL, order = NULL) {
     })
 
   # Now we merge them all together by id and num
-  dz_df <- purrr::reduce(df_list, dplyr::full_join, by = c("id", "num"))
+  dz_df <- purrr::reduce(df_list, dplyr::full_join, by = c("id", "num")) %>% tidyr::drop_na()
 
 
   # Reorder columns if order parameter is provided

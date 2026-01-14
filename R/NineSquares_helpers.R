@@ -356,7 +356,7 @@ NSaddtoplabels <- function(graph,
     mean(
         range(data$control, na.rm = TRUE)[2] - range(data$control, na.rm = TRUE)[1],
         range(data$treatment, na.rm = TRUE)[2] - range(data$treatment, na.rm = TRUE)[1]
-      ) / 10
+      ) / 12
 
   graph <-
     graph +
@@ -422,6 +422,11 @@ NSaddgoi <- function(data,
   tempdf <- data %>%
     dplyr::filter(.data$id %in% goi_list)
 
+  nudge_distance <-
+    mean(
+      range(data$control, na.rm = TRUE)[2] - range(data$control, na.rm = TRUE)[1],
+      range(data$treatment, na.rm = TRUE)[2] - range(data$treatment, na.rm = TRUE)[1]
+    ) / 12
 
   if(goi_auto) {
 
@@ -439,7 +444,7 @@ NSaddgoi <- function(data,
         inherit.aes = FALSE
       ) +
       ggplot2::scale_fill_manual(
-        aesthetics = c("color", "fill"),
+        aesthetics = c("fill"),
         guide = "none",
         values = c(
           "center" = "#B8B8B8",
@@ -485,14 +490,13 @@ NSaddgoi <- function(data,
       max.overlaps = Inf,
       min.segment.length = 0.4,
       show.legend = FALSE,
-      position = ggpp::position_nudge_center(x = 2,
-                                             y = 2,
+      position = ggpp::position_nudge_center(x = nudge_distance,
+                                             y = nudge_distance,
                                              center_x = 0,
                                              center_y = 0,
                                              direction = "radial",
                                              obey_grouping = FALSE)
-    ) +
-    ggplot2::expand_limits(x = c(-10, 10))
+    )
 
   } else if (goi_label_type == "label") {
 
@@ -510,14 +514,13 @@ NSaddgoi <- function(data,
         min.segment.length = 0.4,
         label.padding = 0.2,
         show.legend = FALSE,
-        position = ggpp::position_nudge_center(x = 2,
-                                               y = 2,
+        position = ggpp::position_nudge_center(x = nudge_distance,
+                                               y = nudge_distance,
                                                center_x = 0,
                                                center_y = 0,
                                                direction = "radial",
                                                obey_grouping = FALSE)
-      ) +
-      ggplot2::expand_limits(x = c(-10, 10))
+      )
 
   }
 
