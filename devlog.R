@@ -38,9 +38,13 @@ usethis::use_package("readr", min_version = TRUE)
 usethis::use_package("stringr", min_version = TRUE)
 
 
+
+
+
 usethis::use_import_from("magrittr", "%>%")
 usethis::use_import_from("rlang", ".data")
-usethis::use_import_from("ggpp", "position_nudge_center")
+usethis::use_import_from("purrr", "reduce")
+usethis::use_import_from("withr", "with_locale")
 
 
 # First function: %nin% ---------------------------------------------------
@@ -165,3 +169,34 @@ NineSquares(data,
             filename = "testing_whynot",
             groups_labeled = c("top_center", "bottom_center"),
             goi = c("Gene2994", "Gene405", "Gene1450", "Gene592", "Gene14261"))
+
+
+## Works!
+
+
+# Parsing raw counts for groups -------------------------------------------
+
+## Since everything is so very dependent on number of columns and column grouping,
+## there should be some starting function to establish groupings that then can be
+## inherited by other functions, a metadata of sorts. Could be a SummarizedExperiment.
+
+
+# Quality Control ---------------------------------------------------------
+
+
+## Count index
+
+usethis::use_r("CountIndex")
+
+
+
+
+
+
+
+
+
+
+# Import and process RRA --------------------------------------------------
+
+usethis::use_r("ImportRRA")

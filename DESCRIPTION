@@ -19,6 +19,8 @@ Imports:
     ggpp,
     ggrepel (>= 0.9.6),
     magrittr,
+    purrr,
     readr (>= 2.1.6),
     rlang,
-    stringr (>= 1.6.0)
+    stringr (>= 1.6.0),
+    withr
