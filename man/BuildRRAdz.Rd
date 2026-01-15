@@ -4,7 +4,7 @@
 \alias{BuildRRAdz}
 \title{Build dataframe of RRA Day 0 Comparisons}
 \usage{
-BuildRRAdz(objects = NULL)
+BuildRRAdz(objects = NULL, order = NULL)
 }
 \arguments{
 \item{objects}{Optional character vector of RRA day 0 object names to include.}

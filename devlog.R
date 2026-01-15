@@ -36,6 +36,7 @@ usethis::use_package("ggrepel", min_version = TRUE)
 usethis::use_package("ggnewscale", min_version = TRUE)
 usethis::use_package("readr", min_version = TRUE)
 usethis::use_package("stringr", min_version = TRUE)
+usethis::use_package("tidyr", min_version = TRUE)
 
 
 
@@ -200,3 +201,7 @@ usethis::use_r("CountIndex")
 # Import and process RRA --------------------------------------------------
 
 usethis::use_r("ImportRRA")
+
+# Import and process MLE --------------------------------------------------
+
+usethis::use_r("ImportMLE")
