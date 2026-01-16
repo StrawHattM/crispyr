@@ -33,7 +33,7 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
     ## Assign giving the user the possibility of adding a prefix to avoid overwriting previous imports.
     ## If no prefix is given, NULL is used and the name is just rra_<comparison>
 
-    assign(x = paste0("rra_", NULL, rra_comparisons[i]),
+    assign(x = paste0("rra_", extra_prefix, rra_comparisons[i]),
            value = temp_gene_data,
            envir = .GlobalEnv)
 
