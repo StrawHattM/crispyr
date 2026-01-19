@@ -22,7 +22,8 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
       readr::read_delim(temp_gene_route,
                         delim= "\t",
                         escape_double = FALSE,
-                        trim_ws = TRUE)
+                        trim_ws = TRUE,
+                        show_col_types = FALSE)
 
     ## This step is where we clean the gene names from olfactory receptors and vomeronasal receptors;
     ##also eliminate the annoying | from column names
@@ -50,7 +51,7 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
 #' @param rra_list List of RRA dataframes as imported with ImportRRA()
 #' @param pattern Regex pattern to identify RRA day 0 comparisons (or desired
 #'   comparisons) in the rra_list names. Default matches names starting with "d"
-#'   or "D" or containing "day0_", as `"^[dD]|[dD]ay0_.+"`.
+#'   or "D" or containing "day0_", as `"^([dD]|[dD])ay0_"`.
 #' @param order Optional character vector or factor specifying the order of
 #'   comparisons in the output dataframe.
 #'
@@ -59,7 +60,7 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
 #' @export
 
 
-BuildRRAdz <- function(rra_list, pattern = "^[dD]|[dD]ay0_.+", order = NULL) {
+BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD])ay0_", order = NULL) {
 
   if(!is.null(pattern)) {
 
@@ -87,7 +88,9 @@ BuildRRAdz <- function(rra_list, pattern = "^[dD]|[dD]ay0_.+", order = NULL) {
 
   df_list <-
     purrr::map2(summ_list, prefixes, function(df, prefix) {
+
       df %>%
+        as.data.frame() %>%
         dplyr::rowwise() %>%
         dplyr::mutate(min_pval = min(dplyr::c_across(dplyr::contains("p_value"))),
                       min_fdr = min(dplyr::c_across(dplyr::contains("fdr")))) %>%
