@@ -1,12 +1,11 @@
 
-
 #' Import MLE Results from MAGeCK-MLE
 #'
 #' @param MLE_dir Path to the directory containing MLE results folders.
 #' @param prefix Prefix pattern to identify MLE result folders.
 #' @param extra_prefix Optional prefix to add to the names of the imported dataframes.
 #'
-#' @returns nothing, but assigns dataframes to the global environment with names mle_<comparison>
+#' @returns a list of imported MLE gene summaries with names based on folder names
 #' @export
 
 ImportMLE <- function(MLE_dir = ".",
@@ -21,17 +20,20 @@ ImportMLE <- function(MLE_dir = ".",
     message("MLE results folders will be identified with the prefix 'mageck_MLE_'. To specify another prefix, use argument 'prefix'.")
   }
 
-  MLE_summaries <-
-    list.dirs(path = MLE_dir, recursive = FALSE) %>%
-    stringr::str_subset(prefix) %>%
-    list.files(pattern = "gene_summary", full.names = TRUE)
+  mle_dirs <- list.dirs(path = MLE_dir, recursive = FALSE) %>%
+    stringr::str_subset(prefix)
+
+  mle_names <- basename(mle_dirs) %>%
+    stringr::str_replace_all(prefix, "")
 
   # Now we cycle over the folders and import each gene summary file
 
-  for (i in seq_along(MLE_summaries)) {
+  purrr::map(mle_dirs, function(dir) {
+
+    temp_gene_route <- list.files(dir, pattern = ".*gene_summary.txt$", full.names = TRUE)
 
     temp_gene_data <-
-      readr::read_delim(MLE_summaries[i], delim= "\t", escape_double = FALSE, trim_ws = TRUE)
+      readr::read_delim(tempe_gene_route, delim= "\t", escape_double = FALSE, trim_ws = TRUE)
 
     ## This step is where we clean the gene names from olfactory receptors and vomeronasal receptors;
     ## also eliminate the annoying | from column names
@@ -41,13 +43,9 @@ ImportMLE <- function(MLE_dir = ".",
       dplyr::filter(stringr::str_detect(.data$Gene, "^Gm[:digit:]{4,5}|^Olfr[:digit:]*|^Vmn[:digit:]*", negate = TRUE)) %>%
       dplyr::rename_with(.cols = dplyr::everything(), .fn = ~ stringr::str_replace_all(., "\\||\\-", "_"))
 
-    ## Assign giving the user the possibility of adding a prefix to avoid overwriting previous imports.
-    ## If no prefix is given, NULL is used and the name is just mle_<comparison>
+  return(temp_gene_data)
 
-    assign(x = paste0("mle_", extra_prefix, stringr::str_replace_all(basename(dirname(MLE_summaries[i])), prefix, "")),
-           value = temp_gene_data,
-           envir = .GlobalEnv)
-
-  }
+  }) %>%
+    purrr::set_names(paste0(extra_prefix, mle_names))
 
 }
