@@ -47,6 +47,7 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
 #' Build dataframe of RRA Day 0 Comparisons
 #'
 #' @param objects Optional character vector of RRA day 0 object names to include.
+#' @param order Optional character vector or factor specifying the order of comparisons in the output dataframe.
 #'
 #' @returns a data frame with the LFC, minimum pvalue and FDR for each gene across all provided RRA day 0 objects
 #' @export

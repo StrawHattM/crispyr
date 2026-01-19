@@ -1,6 +1,4 @@
 
-
-
 #' Create and annotate a Nine Squares Plot
 #'
 #' @param data input data frame containing genes, number of sgRNAs per gene,
@@ -42,17 +40,31 @@
 #' @param slopecut 2-length numerical vector indicating where cutoffs should be
 #'   established for the x axis. Replaces default calculation, which is mean ±
 #'   scale * standard deviation of treatment - control
-#' @param legend logical, indicate whether legend should be plotted. Default FALSE
-#' @param filename character, path/name of the file to be written containing the data.
-#' @param groups_labeled groups to have their top genes labeled. Defaults to "top_center", "bottom_center", "middle_right" and "middle_left"
+#' @param legend logical, indicate whether legend should be plotted. Default
+#'   FALSE
+#' @param filename character, path/name of the file to be written containing the
+#'   data.
+#' @param groups_labeled groups to have their top genes labeled. Defaults to
+#'   "top_center", "bottom_center", "middle_right" and "middle_left"
+#' @param assign_object logical or character, if TRUE assigns the resulting plot
+#'   to an object in the global environment with a default name based on the
+#'   data and conditions used; if a character string is provided, assigns the
+#'   plot to an object with that name. Default is NULL.
 #' @param goi character vector of *g*enes *o*f *i*nterest to be highlighted.
-#' @param goi_auto logical, indicates whether highlighted genes of interest are coloured according to the square they are in.
-#' @param goi_shape numeric, shape of the highlighted genes of interest in the plot. Default is 21.
-#' @param goi_color character, color aesthetic of the highlighted genes of interest in the plot. Default is black.
-#' @param goi_fill character, fill aesthetic of the highlighted genes of interest in the plot. Default is black. goi_auto needs to be set to FALSE.
-#' @param goi_size size, shape of the highlighted genes of interest in the plot. Default is 4.
-#' @param goi_label_type character, one of "label" or "text". Indicates whether the annotation is text or a label. Defaults to "label".
-#' @param goi_label_color character, color of the label text, default is "black".
+#' @param goi_auto logical, indicates whether highlighted genes of interest are
+#'   coloured according to the square they are in.
+#' @param goi_shape numeric, shape of the highlighted genes of interest in the
+#'   plot. Default is 21.
+#' @param goi_color character, color aesthetic of the highlighted genes of
+#'   interest in the plot. Default is black.
+#' @param goi_fill character, fill aesthetic of the highlighted genes of
+#'   interest in the plot. Default is black. goi_auto needs to be set to FALSE.
+#' @param goi_size size, shape of the highlighted genes of interest in the plot.
+#'   Default is 4.
+#' @param goi_label_type character, one of "label" or "text". Indicates whether
+#'   the annotation is text or a label. Defaults to "label".
+#' @param goi_label_color character, color of the label text, default is
+#'   "black".
 #' @param goi_label_size character, size of the label text, default is 4.
 #'
 #' @returns a ggplot2 object
@@ -107,6 +119,7 @@ NineSquares <- function(data,
                         slopecut,
                         legend = FALSE,
                         filename,
+                        assign_object = NULL,
                         groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left"),
                         goi,
                         goi_auto = TRUE,
@@ -269,6 +282,31 @@ NineSquares <- function(data,
         goi_label_size = goi_label_size
       )
 
+  }
+
+  # Assign default object if requested
+
+  if (!is.null(assign_object)) {
+    if (assign_object) {
+
+      assign_object <- paste0(
+        "NSplot_",
+        stringr::str_replace(deparse(substitute(data)), "(?<=(rra|RRA))_dz", ""),
+        "_",
+        stringr::str_replace(deparse(substitute(control)), "_(lfc|LFC|beta)$", ""),
+        "_vs_",
+        stringr::str_replace(deparse(substitute(treatment)), "_(lfc|LFC|beta)$", ""),
+      )
+
+    } else if (!is.character(assign_object) | length(assign_object) != 1) {
+
+      stop(
+        "'assign_object' needs to be a single character string, or TRUE for automatic object name generation."
+      )
+
+    }
+
+    assign(x = assign_object, value = graph, envir = .GlobalEnv)
   }
 
   return(graph)

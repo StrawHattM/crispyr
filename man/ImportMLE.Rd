@@ -4,7 +4,7 @@
 \alias{ImportMLE}
 \title{Import MLE Results from MAGeCK-MLE}
 \usage{
-ImportMLE(MLE_dir = ".", prefix = "^mageck_MLE_", extra_prefix = NULL)
+ImportMLE(MLE_dir = ".", prefix = "mageck_MLE_", extra_prefix = NULL)
 }
 \arguments{
 \item{MLE_dir}{Path to the directory containing MLE results folders.}

@@ -214,10 +214,10 @@ NSsquares <- function(data, x_cutoff, y_cutoff, slope_cutoff){
     ) %>%
     dplyr::group_by(.data$square) %>%
     dplyr::mutate(euclid_dist = sqrt(.data$control^2 + .data$treatment^2), #calculate euclidean distance to 0
-                  # perp_dist = abs(diff) / sqrt(2), # perpendicular distance to the diagonal
-                  # score = perp_dist * (1 + euclid_dist / max(euclid_dist, na.rm = TRUE)) # composite score
+                  perp_dist = abs(.data$diff) / sqrt(2), # perpendicular distance to the diagonal
+                  score = .data$perp_dist * (1 + .data$euclid_dist) # composite score
                   ) %>%
-    dplyr::arrange(dplyr::desc(.data$euclid_dist)) %>%
+    dplyr::arrange(dplyr::desc(.data$score)) %>%
     dplyr::mutate(rank = dplyr::row_number()) %>% # Because it's grouped and sorted, row order = rank
     dplyr::ungroup()
 
@@ -347,16 +347,50 @@ NSaddtoplabels <- function(graph,
                            data,
                            groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left"),
                            top_labeled = 10) {
-  label_df <-
-    data %>%
-    dplyr::filter(.data$square %in% groups_labeled) %>%
-    dplyr::filter(.data$rank <= top_labeled)
 
   nudge_distance <-
     mean(
-        range(data$control, na.rm = TRUE)[2] - range(data$control, na.rm = TRUE)[1],
-        range(data$treatment, na.rm = TRUE)[2] - range(data$treatment, na.rm = TRUE)[1]
-      ) / 12
+      range(data$control, na.rm = TRUE)[2] - range(data$control, na.rm = TRUE)[1],
+      range(data$treatment, na.rm = TRUE)[2] - range(data$treatment, na.rm = TRUE)[1]
+    ) / 12
+
+  label_df <-
+    data %>%
+    dplyr::filter(.data$square %in% groups_labeled) %>%
+    dplyr::filter(.data$rank <= top_labeled) %>%
+    dplyr::mutate(
+      # Determine if point is above or below diagonal
+      above_diagonal = .data$treatment > .data$control,
+
+      # Nudge perpendicular to y=x based on square
+      nudge_x = dplyr::case_when(
+        .data$square == "top_center" ~ -nudge_distance * 0.5,  # upper-left
+        .data$square == "bottom_center" ~ nudge_distance * 0.5,  # lower-right
+        .data$square == "middle_right" ~ nudge_distance * 0.5,  # lower-right
+        .data$square == "middle_left" ~ -nudge_distance * 0.5,  # upper-left
+        .data$square == "top_left" ~ -nudge_distance * 0.5,  # upper-left
+        .data$square == "top_right" & above_diagonal ~ -nudge_distance * 0.5,  # upper-left
+        .data$square == "top_right" & !above_diagonal ~ nudge_distance * 0.5,  # lower-right
+        .data$square == "bottom_left" & above_diagonal ~ -nudge_distance * 0.5,  # upper-left
+        .data$square == "bottom_left" & !above_diagonal ~ nudge_distance * 0.5,  # lower-right
+        .data$square == "bottom_right" ~ nudge_distance * 0.5,  # lower-right
+        TRUE ~ ifelse(above_diagonal, -nudge_distance * 0.5, nudge_distance * 0.5)
+      ),
+
+      nudge_y = dplyr::case_when(
+        .data$square == "top_center" ~ nudge_distance * 0.5,  # upper-left
+        .data$square == "bottom_center" ~ -nudge_distance * 0.5,  # lower-right
+        .data$square == "middle_right" ~ -nudge_distance * 0.5,  # lower-right
+        .data$square == "middle_left" ~ nudge_distance * 0.5,  # upper-left
+        .data$square == "top_left" ~ nudge_distance * 0.5,  # upper-left
+        .data$square == "top_right" & above_diagonal ~ nudge_distance * 0.5,  # upper-left
+        .data$square == "top_right" & !above_diagonal ~ -nudge_distance * 0.5,  # lower-right
+        .data$square == "bottom_left" & above_diagonal ~ nudge_distance * 0.5,  # upper-left
+        .data$square == "bottom_left" & !above_diagonal ~ -nudge_distance * 0.5,  # lower-right
+        .data$square == "bottom_right" ~ -nudge_distance * 0.5,  # lower-right
+        TRUE ~ ifelse(above_diagonal, nudge_distance * 0.5, -nudge_distance * 0.5)
+      )
+    )
 
   graph <-
     graph +
@@ -368,20 +402,60 @@ NSaddtoplabels <- function(graph,
         label = .data$id,
         color = .data$square
       ),
+      nudge_x = label_df$nudge_x,
+      nudge_y = label_df$nudge_y,
       size = 3,
       inherit.aes = FALSE,
       max.overlaps = Inf,
       min.segment.length = 0.1,
-      position = ggpp::position_nudge_center(x = nudge_distance,
-                                             y = nudge_distance,
-                                             center_x = 0,
-                                             center_y = 0,
-                                             direction = "radial",
-                                             obey_grouping = FALSE)
+      direction = "both"
     )
 
   return(graph)
 }
+
+# NSaddtoplabels <- function(graph,
+#                            data,
+#                            groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left"),
+#                            top_labeled = 10) {
+#   label_df <-
+#     data %>%
+#     dplyr::filter(.data$square %in% groups_labeled) %>%
+#     dplyr::filter(.data$rank <= top_labeled)
+#
+#   nudge_distance <-
+#     mean(
+#         range(data$control, na.rm = TRUE)[2] - range(data$control, na.rm = TRUE)[1],
+#         range(data$treatment, na.rm = TRUE)[2] - range(data$treatment, na.rm = TRUE)[1]
+#       ) / 12
+#
+#   graph <-
+#     graph +
+#     ggrepel::geom_text_repel(
+#       data = label_df,
+#       mapping = ggplot2::aes(
+#         x = .data$control,
+#         y = .data$treatment,
+#         label = .data$id,
+#         color = .data$square
+#       ),
+#       size = 3,
+#       inherit.aes = FALSE,
+#       max.overlaps = Inf,
+#       min.segment.length = 0.1,
+#       position = ggpp::position_nudge_center(x = nudge_distance,
+#                                              y = nudge_distance,
+#                                              center_x = 0,
+#                                              center_y = 0,
+#                                              direction = "radial",
+#                                              obey_grouping = FALSE)
+#     )
+#
+#   return(graph)
+# }
+
+
+
 
 
 #' Add Genes of Interest (goi) highlights
@@ -526,4 +600,34 @@ NSaddgoi <- function(data,
 
 
   return(graph)
+}
+
+
+#' Extract data from Nine Squares plot object and assign it
+#'
+#' @param graph a Nine Squares plot object
+#' @param assign logical, whether to assign the data to the global environment
+#'
+#' @returns the data frame used to generate the plot
+#' @export
+
+NSextractdata <- function(graph, assign = TRUE) {
+
+  if(assign) {
+
+    if(stringr::str_detect(deparse(substitute(graph)), "^NSplot")) {
+      filename <- stringr::str_replace(deparse(substitute(graph)), "NSplot", "NSdata")
+    } else if (stringr::str_detect(deparse(substitute(graph)), "^NineSquares")) {
+      filename <- stringr::str_replace(deparse(substitute(graph)), "NineSquares", "NSdata")
+    } else {
+      filename <- paste0("NSdata_", stringr::str_replace(deparse(substitute(graph))))
+    }
+
+    assign(x = filename,
+           data = graph$data,
+           envir = .GlobalEnv)
+  }
+
+  return(graph$data)
+
 }

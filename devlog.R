@@ -39,13 +39,11 @@ usethis::use_package("stringr", min_version = TRUE)
 usethis::use_package("tidyr", min_version = TRUE)
 
 
-
-
-
 usethis::use_import_from("magrittr", "%>%")
 usethis::use_import_from("rlang", ".data")
 usethis::use_import_from("purrr", "reduce")
 usethis::use_import_from("withr", "with_locale")
+usethis::use_import_from("ggpp", "position_nudge_center")
 
 
 # First function: %nin% ---------------------------------------------------
@@ -173,6 +171,28 @@ NineSquares(data,
 
 
 ## Works!
+
+
+# Load real data from RDS file
+
+test_data <- readRDS("D:/Bibliotecas/Biologia/Experimentos/ALISERTIB_screen/Analysis/test_data.RDS")
+
+# test_graph<-
+NineSquares(test_data,
+            control = UT_lfc,
+            treatment = ASTres_lfc,
+            ctrl_pval = UT_pval,
+            treat_pval = ASTres_pval,
+            # min_pval = 0.01,
+            groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left", "bottom_left"),
+            top_labeled = 10,
+            xlab = "UT LFC",
+            ylab = "ASTres LFC",
+            title = "RRA_byrep: UT vs ASTres",
+            goi = c("Ufd1", "Vcp", "Nploc4", "Rigi", "Rnf125", "Ddx58", "Isg15"))
+
+test_graph + geom_smooth(method = "lm")
+
 
 
 # Parsing raw counts for groups -------------------------------------------

@@ -8,6 +8,8 @@ BuildRRAdz(objects = NULL, order = NULL)
 }
 \arguments{
 \item{objects}{Optional character vector of RRA day 0 object names to include.}
+
+\item{order}{Optional character vector or factor specifying the order of comparisons in the output dataframe.}
 }
 \value{
 a data frame with the LFC, minimum pvalue and FDR for each gene across all provided RRA day 0 objects

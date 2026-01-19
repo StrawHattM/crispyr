@@ -25,6 +25,7 @@ NineSquares(
   slopecut,
   legend = FALSE,
   filename,
+  assign_object = NULL,
   groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left"),
   goi,
   goi_auto = TRUE,
@@ -95,27 +96,42 @@ scale * standard deviation of treatment}
 established for the x axis. Replaces default calculation, which is mean ±
 scale * standard deviation of treatment - control}
 
-\item{legend}{logical, indicate whether legend should be plotted. Default FALSE}
+\item{legend}{logical, indicate whether legend should be plotted. Default
+FALSE}
 
-\item{filename}{character, path/name of the file to be written containing the data.}
+\item{filename}{character, path/name of the file to be written containing the
+data.}
 
-\item{groups_labeled}{groups to have their top genes labeled. Defaults to "top_center", "bottom_center", "middle_right" and "middle_left"}
+\item{assign_object}{logical or character, if TRUE assigns the resulting plot
+to an object in the global environment with a default name based on the
+data and conditions used; if a character string is provided, assigns the
+plot to an object with that name. Default is NULL.}
+
+\item{groups_labeled}{groups to have their top genes labeled. Defaults to
+"top_center", "bottom_center", "middle_right" and "middle_left"}
 
 \item{goi}{character vector of \emph{g}enes \emph{o}f \emph{i}nterest to be highlighted.}
 
-\item{goi_auto}{logical, indicates whether highlighted genes of interest are coloured according to the square they are in.}
+\item{goi_auto}{logical, indicates whether highlighted genes of interest are
+coloured according to the square they are in.}
 
-\item{goi_shape}{numeric, shape of the highlighted genes of interest in the plot. Default is 21.}
+\item{goi_shape}{numeric, shape of the highlighted genes of interest in the
+plot. Default is 21.}
 
-\item{goi_color}{character, color aesthetic of the highlighted genes of interest in the plot. Default is black.}
+\item{goi_color}{character, color aesthetic of the highlighted genes of
+interest in the plot. Default is black.}
 
-\item{goi_fill}{character, fill aesthetic of the highlighted genes of interest in the plot. Default is black. goi_auto needs to be set to FALSE.}
+\item{goi_fill}{character, fill aesthetic of the highlighted genes of
+interest in the plot. Default is black. goi_auto needs to be set to FALSE.}
 
-\item{goi_size}{size, shape of the highlighted genes of interest in the plot. Default is 4.}
+\item{goi_size}{size, shape of the highlighted genes of interest in the plot.
+Default is 4.}
 
-\item{goi_label_type}{character, one of "label" or "text". Indicates whether the annotation is text or a label. Defaults to "label".}
+\item{goi_label_type}{character, one of "label" or "text". Indicates whether
+the annotation is text or a label. Defaults to "label".}
 
-\item{goi_label_color}{character, color of the label text, default is "black".}
+\item{goi_label_color}{character, color of the label text, default is
+"black".}
 
 \item{goi_label_size}{character, size of the label text, default is 4.}
 }
