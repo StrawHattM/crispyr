@@ -4,15 +4,21 @@
 \alias{BuildRRAdz}
 \title{Build dataframe of RRA Day 0 Comparisons}
 \usage{
-BuildRRAdz(objects = NULL, order = NULL)
+BuildRRAdz(rra_list, pattern = "^[dD]|[dD]ay0_.+", order = NULL)
 }
 \arguments{
-\item{objects}{Optional character vector of RRA day 0 object names to include.}
+\item{rra_list}{List of RRA dataframes as imported with ImportRRA()}
 
-\item{order}{Optional character vector or factor specifying the order of comparisons in the output dataframe.}
+\item{pattern}{Regex pattern to identify RRA day 0 comparisons (or desired
+comparisons) in the rra_list names. Default matches names starting with "d"
+or "D" or containing "day0_", as \code{"^[dD]|[dD]ay0_.+"}.}
+
+\item{order}{Optional character vector or factor specifying the order of
+comparisons in the output dataframe.}
 }
 \value{
-a data frame with the LFC, minimum pvalue and FDR for each gene across all provided RRA day 0 objects
+a data frame with the LFC, minimum pvalue and FDR for each gene
+across all provided RRA day 0 objects
 }
 \description{
 Build dataframe of RRA Day 0 Comparisons

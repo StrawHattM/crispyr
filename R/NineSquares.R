@@ -284,31 +284,8 @@ NineSquares <- function(data,
 
   }
 
-  # Assign default object if requested
 
-  if (!is.null(assign_object)) {
-    if (assign_object) {
-
-      assign_object <- paste0(
-        "NSplot_",
-        stringr::str_replace(deparse(substitute(data)), "(?<=(rra|RRA))_dz", ""),
-        "_",
-        stringr::str_replace(deparse(substitute(control)), "_(lfc|LFC|beta)$", ""),
-        "_vs_",
-        stringr::str_replace(deparse(substitute(treatment)), "_(lfc|LFC|beta)$", ""),
-      )
-
-    } else if (!is.character(assign_object) | length(assign_object) != 1) {
-
-      stop(
-        "'assign_object' needs to be a single character string, or TRUE for automatic object name generation."
-      )
-
-    }
-
-    assign(x = assign_object, value = graph, envir = .GlobalEnv)
-  }
-
-  return(graph)
+  print(graph)
+  invisible(graph)
 
 }

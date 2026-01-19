@@ -33,7 +33,7 @@ ImportMLE <- function(MLE_dir = ".",
     temp_gene_route <- list.files(dir, pattern = ".*gene_summary.txt$", full.names = TRUE)
 
     temp_gene_data <-
-      readr::read_delim(tempe_gene_route, delim= "\t", escape_double = FALSE, trim_ws = TRUE)
+      readr::read_delim(temp_gene_route, delim= "\t", escape_double = FALSE, trim_ws = TRUE)
 
     ## This step is where we clean the gene names from olfactory receptors and vomeronasal receptors;
     ## also eliminate the annoying | from column names

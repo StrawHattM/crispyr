@@ -12,7 +12,7 @@ ImportRRA(RRA_dir, extra_prefix = NULL)
 \item{extra_prefix}{Optional prefix to add to the names of the imported dataframes.}
 }
 \value{
-nothing, but assigns dataframes to the global environment with names rra_\if{html}{\out{<comparison>}}
+a list of imported RRA gene summaries with names rra_\if{html}{\out{<comparison>}}
 }
 \description{
 Import RRA Results

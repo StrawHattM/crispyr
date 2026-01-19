@@ -50,7 +50,7 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
 #' @param rra_list List of RRA dataframes as imported with ImportRRA()
 #' @param pattern Regex pattern to identify RRA day 0 comparisons (or desired
 #'   comparisons) in the rra_list names. Default matches names starting with "d"
-#'   or "D" or containing "day0_", as "^[dD]|[dD]ay0_.+".
+#'   or "D" or containing "day0_", as `"^[dD]|[dD]ay0_.+"`.
 #' @param order Optional character vector or factor specifying the order of
 #'   comparisons in the output dataframe.
 #'

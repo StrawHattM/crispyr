@@ -14,7 +14,7 @@ ImportMLE(MLE_dir = ".", prefix = "mageck_MLE_", extra_prefix = NULL)
 \item{extra_prefix}{Optional prefix to add to the names of the imported dataframes.}
 }
 \value{
-nothing, but assigns dataframes to the global environment with names mle_\if{html}{\out{<comparison>}}
+a list of imported MLE gene summaries with names based on folder names
 }
 \description{
 Import MLE Results from MAGeCK-MLE
