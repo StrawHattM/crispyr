@@ -493,6 +493,10 @@ NSaddgoi <- function(data,
     goi_label_type <- "label"
   }
 
+  if(missing(data)) {
+    data <- graph$data
+  }
+
   tempdf <- data %>%
     dplyr::filter(.data$id %in% goi_list)
 
