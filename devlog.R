@@ -225,3 +225,20 @@ usethis::use_r("ImportRRA")
 # Import and process MLE --------------------------------------------------
 
 usethis::use_r("ImportMLE")
+
+# Import and process Drugz ------------------------------------------------
+
+
+usethis::use_r("ImportDrugZ")
+
+
+DrugZ_dir <- "D:/Bibliotecas/Biologia/Experimentos/ALISERTIB_screen/Analysis/drugz_allreps"
+
+load_all()
+
+drugz_allrep_summs <- ImportDrugZ(DrugZ_dir = DrugZ_dir)
+
+Drugz_dz_allreps <-
+  BuildDrugZdz(drugz_allrep_summs)
+
+rm(BuildDrugZdz)

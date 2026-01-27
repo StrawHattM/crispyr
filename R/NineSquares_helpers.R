@@ -605,33 +605,3 @@ NSaddgoi <- function(data,
 
   return(graph)
 }
-
-
-#' Extract data from Nine Squares plot object and assign it
-#'
-#' @param graph a Nine Squares plot object
-#' @param assign logical, whether to assign the data to the global environment
-#'
-#' @returns the data frame used to generate the plot
-#' @export
-
-NSextractdata <- function(graph, assign = TRUE) {
-
-  if(assign) {
-
-    if(stringr::str_detect(deparse(substitute(graph)), "^NSplot")) {
-      filename <- stringr::str_replace(deparse(substitute(graph)), "NSplot", "NSdata")
-    } else if (stringr::str_detect(deparse(substitute(graph)), "^NineSquares")) {
-      filename <- stringr::str_replace(deparse(substitute(graph)), "NineSquares", "NSdata")
-    } else {
-      filename <- paste0("NSdata_", stringr::str_replace(deparse(substitute(graph))))
-    }
-
-    assign(x = filename,
-           data = graph$data,
-           envir = .GlobalEnv)
-  }
-
-  return(graph$data)
-
-}

@@ -2,4 +2,5 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^LICENSE\.md$
-^\data\test_data.RDS
+^data\\test_data.RDS$
+^devlog\.R$

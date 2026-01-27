@@ -4,14 +4,14 @@
 \alias{BuildRRAdz}
 \title{Build dataframe of RRA Day 0 Comparisons}
 \usage{
-BuildRRAdz(rra_list, pattern = "^[dD]|[dD]ay0_.+", order = NULL)
+BuildRRAdz(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL)
 }
 \arguments{
 \item{rra_list}{List of RRA dataframes as imported with ImportRRA()}
 
 \item{pattern}{Regex pattern to identify RRA day 0 comparisons (or desired
 comparisons) in the rra_list names. Default matches names starting with "d"
-or "D" or containing "day0_", as \code{"^[dD]|[dD]ay0_.+"}.}
+or "D" or containing "day0_", as \code{"^([dD]|[dD]ay)0_"}.}
 
 \item{order}{Optional character vector or factor specifying the order of
 comparisons in the output dataframe.}

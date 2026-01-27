@@ -1,22 +1,22 @@
-#' Import RRA Results
+#' Import DrugZ Results
 #'
-#' @param RRA_dir Path to the directory containing RRA results folders.
+#' @param DrugZ_dir Path to the directory containing DrugZ results folders.
 #' @param extra_prefix Optional prefix to add to the names of the imported dataframes.
 #'
-#' @returns a list of imported RRA gene summaries with names extra_prefix<comparison>
+#' @returns a list of imported DrugZ gene summaries with names extra_prefix<comparison>
 #' @export
 
-ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
+ImportDrugZ <- function(DrugZ_dir, extra_prefix = NULL) {
 
   # Per generated RRA script structure, each folder in RRA_dir specifies which comparison is inside
-  rra_comparisons <- list.files(RRA_dir) %>% stringr::str_replace_all("-", "_")
+  drugz_comparisons <- list.files(DrugZ_dir) %>% stringr::str_replace_all("-", "_")
 
-  dirs <- list.dirs(RRA_dir)[-1]
+  dirs <- list.dirs(DrugZ_dir)[-1]
 
   purrr::map(dirs, function(dir) {
 
     temp_gene_route <-
-      list.files(dir, pattern = ".*gene_summary.txt$", full.names = TRUE)
+      list.files(dir, pattern = ".txt$", full.names = TRUE)
 
     temp_gene_data <-
       readr::read_delim(temp_gene_route,
@@ -31,48 +31,53 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
     temp_gene_data <-
       temp_gene_data %>%
       dplyr::filter(
-        stringr::str_detect(.data$id,
+        stringr::str_detect(.data$GENE,
                             "^Gm[:digit:]{4,5}|^Olfr[:digit:]*|^Vmn[:digit:]*",
                             negate = TRUE)
-        ) %>%
+      ) %>%
+      dplyr::relocate(.data$numObs, .after=.data$GENE) %>%
       dplyr::rename_with(.cols = dplyr::everything(),
                          .fn = ~ stringr::str_replace_all(., "\\||\\-", "_"))
 
     return(temp_gene_data)
 
   }) %>%
-    purrr::set_names(paste0(extra_prefix, rra_comparisons))
+    purrr::set_names(paste0(extra_prefix, drugz_comparisons))
 
 }
 
 
+
+
+
+
 #' Build dataframe of RRA Day 0 Comparisons
 #'
-#' @param rra_list List of RRA dataframes as imported with ImportRRA()
-#' @param pattern Regex pattern to identify RRA day 0 comparisons (or desired
-#'   comparisons) in the rra_list names. Default matches names starting with "d"
-#'   or "D" or containing "day0_", as `"^([dD]|[dD]ay)0_"`.
+#' @param drugz_list List of DrugZ dataframes as imported with ImportDrugZ()
+#' @param pattern Regex pattern to identify DrugZ day 0 comparisons (or desired
+#'   comparisons) in the drugz_list names. Default matches names starting with
+#'   D/day0_", as `"^([dD]|[dD]ay)0_"`.
 #' @param order Optional character vector or factor specifying the order of
 #'   comparisons in the output dataframe.
 #'
-#' @returns a data frame with the LFC, minimum pvalue and FDR for each gene
-#'   across all provided RRA day 0 objects
+#' @returns a data frame with the NormZ, minimum pvalue and FDR for each gene
+#'   across all provided DrugZ day 0 (or as indicated by the prefix) objects
 #' @export
 
 
-BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
+BuildDrugZdz <- function(drugz_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
 
   if(!is.null(pattern)) {
 
-    matching_names <- stringr::str_subset(names(rra_list), pattern = pattern)
+    matching_names <- stringr::str_subset(names(drugz_list), pattern = pattern)
 
-    summ_list <- rra_list[matching_names]
+    summ_list <- drugz_list[matching_names]
 
     # Use the pattern to extract prefixes by removing it from names
     prefixes <- stringr::str_replace_all(names(summ_list), pattern, "")
 
   } else {
-    summ_list <- rra_list
+    summ_list <- drugz_list
 
     # If no pattern, use full names as prefixes
     prefixes <- names(summ_list)
@@ -80,7 +85,7 @@ BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
   }
 
   if (length(summ_list) == 0) {
-    stop(paste0("No RRA objects found matching pattern ", pattern))
+    stop(paste0("No DrugZ objects found matching pattern ", pattern))
   }
 
 
@@ -92,22 +97,23 @@ BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
       df %>%
         as.data.frame() %>%
         dplyr::rowwise() %>%
-        dplyr::mutate(min_pval = min(dplyr::c_across(dplyr::contains("p_value"))),
+        dplyr::mutate(min_pval = min(dplyr::c_across(dplyr::contains("pval"))),
                       min_fdr = min(dplyr::c_across(dplyr::contains("fdr")))) %>%
-        dplyr::select(.data$id,
-                      .data$num,
-                      .data$pos_lfc,
+        dplyr::select(.data$GENE,
+                      .data$numObs,
+                      .data$normZ,
                       .data$min_pval,
                       .data$min_fdr) %>%
         dplyr::rename_with(
           .cols = 2:5,
-          .fn = ~ stringr::str_replace_all(., "pos|min", prefix)
+          .fn = ~ stringr::str_replace_all(., c("min" = prefix,
+                                                "normZ" = paste0(prefix, "_normZ")))
         )
     })
 
   # Now we merge them all together by id and num
 
-  df_collapsed <- purrr::reduce(df_list, dplyr::full_join, by = c("id", "num")) %>% tidyr::drop_na()
+  df_collapsed <- purrr::reduce(df_list, dplyr::full_join, by = c("GENE", "numObs")) %>% tidyr::drop_na()
 
 
   # Reorder columns if order parameter is provided
@@ -127,8 +133,8 @@ BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
     df_collapsed <-
       df_collapsed %>%
       dplyr::select(
-        .data$id,
-        .data$num,
+        .data$GENE,
+        .data$numObs,
         !!!purrr::map(order_levels, ~ dplyr::starts_with(paste0(.x, "_")))
       )
 
