@@ -4,12 +4,20 @@
 \alias{NSextractdata}
 \title{Extract data from Nine Squares plot object and assign it}
 \usage{
-NSextractdata(list)
+NSextractdata(graph_list, which = "data")
 }
 \arguments{
-\item{graph}{a Nine Squares plot object}
+\item{graph_list}{A Nine Squares plot object or list of Nine Squares plot objects}
 
-\item{assign}{logical, whether to assign the data to the global environment}
+\item{which}{Character vector specifying which data to extract. Options include:
+\code{"data"} (the full data frame used to generate the plot),
+\code{"bottom_center"}, \code{"bottom_left"},
+\code{"bottom_right"}, \code{"top_left"}, \code{"top_right"},
+\code{"top_center"}, \code{"middle_right"}, \code{"middle
+ _left"}, \code{"center"}, \code{"neutral_slope"}.
+If one of the square positions is selected, the function will return
+the IDs of the genes in that square. If \code{"data"} is
+selected, the full data frame used to generate the plot will be returned.}
 }
 \value{
 the data frame used to generate the plot

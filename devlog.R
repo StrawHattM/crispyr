@@ -242,3 +242,21 @@ Drugz_dz_allreps <-
   BuildDrugZdz(drugz_allrep_summs)
 
 rm(BuildDrugZdz)
+
+
+test <-
+  NineSquares(Drugz_dz_allreps,
+              control = UT_normZ,
+              treatment = ASTsen_normZ,
+              ctrl_pval = UT_pval,
+              treat_pval = ASTsen_pval,
+              min_pval = 0.01,
+              top_labeled = 10,
+              groups_labeled = c("bottom_left", "bottom_center", "bottom_right"),
+              xlab = "UT normZ",
+              ylab = "ASTsen normZ",
+              title = "DrugZ_allrep: UT vs ASTsen",
+              goi_auto = TRUE)
+
+
+NSextractdata(test)
