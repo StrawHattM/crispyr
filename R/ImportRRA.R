@@ -62,6 +62,10 @@ ImportRRA <- function(RRA_dir, extra_prefix = NULL) {
 
 BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
 
+  if (is.null(names(rra_list))) {
+    stop("rra_list must be a named list")
+  }
+
   if(!is.null(pattern)) {
 
     matching_names <- stringr::str_subset(names(rra_list), pattern = pattern)

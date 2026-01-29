@@ -67,6 +67,11 @@ ImportDrugZ <- function(DrugZ_dir, extra_prefix = NULL) {
 
 BuildDrugZdz <- function(drugz_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
 
+  if (is.null(names(drugz_list))) {
+    stop("drugz_list must be a named list")
+  }
+
+
   if(!is.null(pattern)) {
 
     matching_names <- stringr::str_subset(names(drugz_list), pattern = pattern)
