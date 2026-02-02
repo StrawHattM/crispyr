@@ -174,6 +174,9 @@ NSfilterpval <- function(data, min_pval = 0.05) {
   return(tempdf)
 }
 
+
+
+
 #' Create and assign Squares in a dataset using cutoffs
 #'
 #' @param data data frame containing treatment & control columns, as generated
@@ -250,6 +253,7 @@ NSbasegraph <- function(data,
                         x_cutoff,
                         y_cutoff,
                         slope_cutoff,
+                        size_var,
                         size = 2,
                         alpha = 0.4,
                         shape = 21,
@@ -257,12 +261,25 @@ NSbasegraph <- function(data,
 
   if(!is.logical(legend)){stop("legend needs to be TRUE or FALSE")}
 
-  graph <-
-    ggplot2::ggplot(data, ggplot2::aes(x = .data$control, y = .data$treatment)) +
-    ggplot2::geom_point(ggplot2::aes(color = .data$square, fill = .data$square),
-                        alpha = alpha,
-                        shape = shape,
-                        size = size) +
+  if (!missing(size_var)) {
+    graph <- graph +
+      ggplot2::geom_point(ggplot2::aes(color = .data$square,
+                                       fill = .data$square,
+                                       size = .data[[size_var]]),
+                          alpha = alpha,
+                          shape = shape)
+  } else {
+    graph <- graph +
+      ggplot2::geom_point(ggplot2::aes(color = .data$square,
+                                       fill = .data$square),
+                          alpha = alpha,
+                          shape = shape,
+                          size = size)
+  }
+
+
+
+  graph <- graph +
     ggplot2::theme_minimal() +
     ggplot2::geom_vline(xintercept = x_cutoff, linetype = "dashed", color = "grey60") +
     ggplot2::geom_hline(yintercept = y_cutoff, linetype = "dashed", color = "grey60") +

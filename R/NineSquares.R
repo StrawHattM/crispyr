@@ -66,6 +66,8 @@
 #' @param goi_label_color character, color of the label text, default is
 #'   "black".
 #' @param goi_label_size character, size of the label text, default is 4.
+#' @param size_var character, column name to map to point size. If missing,
+#'   constant size (specified by `size` parameter) is used for all points.
 #'
 #' @returns a ggplot2 object
 #' @export
@@ -109,6 +111,7 @@ NineSquares <- function(data,
                         scale = 2,
                         alpha = 0.4,
                         shape = 21,
+                        size_var,
                         top_labeled = 5,
                         force_zero_center = c("none", "both", "control", "treatment"),
                         xlab,

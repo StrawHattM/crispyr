@@ -9,6 +9,7 @@ NSbasegraph(
   x_cutoff,
   y_cutoff,
   slope_cutoff,
+  size_var,
   size = 2,
   alpha = 0.4,
   shape = 21,

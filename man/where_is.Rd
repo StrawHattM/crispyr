@@ -9,8 +9,14 @@ where_is(genes, data, return_full = FALSE)
 \arguments{
 \item{genes}{Character vector of gene identifiers to search for.}
 
-\item{data}{Either a named list of character vectors (each containing gene
-IDs) or a dataframe with columns \code{id} and \code{square} (NineSquares format).}
+\item{data}{One of the following:
+\itemize{
+\item A named list of character vectors (each containing gene IDs)
+\item A dataframe with columns \code{id} and \code{square} (NineSquares format)
+\item A ggplot object (data will be extracted from the \code{data} slot)
+\item A named list of ggplot objects (returns a named list of results)
+\item A named list of dataframes with \code{id} and \code{square} columns (returns a named list of results)
+}}
 
 \item{return_full}{Logical. If \code{TRUE} and \code{data} is a list, returns the full
 vectors containing each gene rather than just the vector names. Ignored for
@@ -20,10 +26,12 @@ NineSquares data. Default: \code{FALSE}.}
 For single gene input: a character vector of group/square names where
 the gene was found, or \code{character(0)} if not found. For multiple genes: a
 named list where each element contains the character vector of groups/squares
-for that gene.
+for that gene. When \code{data} is a named list of graphs or dataframes, returns
+a named list where names correspond to the input list names and values are
+the square locations.
 }
 \description{
 Find which groups or squares contain specified genes. Accepts either a list
 of named character vectors (e.g., from NSextractdata results) or NineSquares
-dataframe output.
+dataframe output, or a named list of graphs or graph data.
 }

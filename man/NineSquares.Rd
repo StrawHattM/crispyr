@@ -15,6 +15,7 @@ NineSquares(
   scale = 2,
   alpha = 0.4,
   shape = 21,
+  size_var,
   top_labeled = 5,
   force_zero_center = c("none", "both", "control", "treatment"),
   xlab,
@@ -68,6 +69,9 @@ Default is 2.}
 \item{alpha}{numeric, transparency of the points in the plot. Default is 0.4.}
 
 \item{shape}{numeric, shape of the points in the plot. Default is 21.}
+
+\item{size_var}{character, column name to map to point size. If missing,
+constant size (specified by \code{size} parameter) is used for all points.}
 
 \item{top_labeled}{numeric, indicates how many top genes (by euclidean
 distance) in each group/square to label. Default is 5.}
