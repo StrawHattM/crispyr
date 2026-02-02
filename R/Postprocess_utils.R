@@ -72,7 +72,7 @@ extractNSdata <- function(graph_list, which = "data") {
 #'
 #' Find which groups or squares contain specified genes. Accepts either a list
 #' of named character vectors (e.g., from NSextractdata results) or NineSquares
-#' dataframe output.
+#' dataframe output, or a named list of graphs or graph data.
 #'
 #' @param genes Character vector of gene identifiers to search for.
 #' @param data One of the following:
@@ -80,6 +80,8 @@ extractNSdata <- function(graph_list, which = "data") {
 #'     \item A named list of character vectors (each containing gene IDs)
 #'     \item A dataframe with columns `id` and `square` (NineSquares format)
 #'     \item A ggplot object (data will be extracted from the `data` slot)
+#'     \item A named list of ggplot objects (returns a named list of results)
+#'     \item A named list of dataframes with `id` and `square` columns (returns a named list of results)
 #'   }
 #' @param return_full Logical. If `TRUE` and `data` is a list, returns the full
 #'   vectors containing each gene rather than just the vector names. Ignored for
@@ -88,11 +90,28 @@ extractNSdata <- function(graph_list, which = "data") {
 #' @return For single gene input: a character vector of group/square names where
 #'   the gene was found, or `character(0)` if not found. For multiple genes: a
 #'   named list where each element contains the character vector of groups/squares
-#'   for that gene.
+#'   for that gene. When `data` is a named list of graphs or dataframes, returns
+#'   a named list where names correspond to the input list names and values are
+#'   the square locations.
 #'
 #' @export
 
 where_is <- function(genes, data, return_full = FALSE) {
+
+  # Check if data is a named list (graphs or dataframes)
+  if (is.list(data) && !is.data.frame(data)) {
+    is_graphs <- all(vapply(data, inherits, logical(1), "gg"))
+    is_dfs <- all(vapply(data, is.data.frame, logical(1))) &&
+              all(vapply(data, function(df) "square" %in% names(df), logical(1)))
+
+    if (is_graphs || is_dfs) {
+      # Named list - process each element separately
+      results <- purrr::map(data, function(element) {
+        where_is(genes, element, return_full = return_full)
+      })
+      return(results)
+    }
+  }
 
   # Extract data from ggplot if needed
   if (inherits(data, "gg")) {
@@ -111,7 +130,61 @@ where_is <- function(genes, data, return_full = FALSE) {
     }
   }
 
+  # For NineSquares dataframes with multiple genes, return a vector
+  if (is.data.frame(data) && "square" %in% names(data) && length(genes) > 1L) {
+    return(vapply(genes, .find_one, character(1)))
+  }
+
   results <- purrr::map(purrr::set_names(genes), .find_one)
 
   if (length(genes) == 1L) results[[1L]] else results
+}
+
+
+
+
+#' Save Nine Squares data to files
+#'
+#' @param graph_list A Nine Squares plot object or list of Nine Squares plot
+#'   objects
+#' @param dir Directory path where files will be saved. Created if it doesn't
+#'   exist. Default: "./graphdata/"
+#' @param prefix Prefix for output filenames. If not provided, will use
+#'   "NineSquaresData_<object_name>_"
+#'
+#' @export
+
+saveNSdata <- function(graph_list, dir = "./graphdata/", prefix) {
+
+  # Convert single graph to list
+  if (inherits(graph_list, "gg")) {
+    graph_name <- deparse(substitute(graph_list))
+    graph_list <- list(graph_list)
+    names(graph_list) <- graph_name
+  }
+
+  # Create directory if needed
+  if (!dir.exists(dir)) {
+    dir.create(dir, recursive = TRUE)
+  }
+
+  # Set prefix
+  if (missing(prefix)) {
+    prefix <- paste0("NineSquaresData_", deparse(substitute(graph_list)), "_")
+  }
+
+  # Extract and save data
+  graphdata_list <- extractNSdata(graph_list, which = "data")
+
+  # Ensure names exist
+  if (is.null(names(graphdata_list))) {
+    names(graphdata_list) <- paste0("graph_", seq_along(graphdata_list))
+  }
+
+  # Write files
+  purrr::iwalk(graphdata_list, function(graph, name) {
+    filepath <- file.path(dir, paste0(prefix, name, ".txt"))
+    readr::write_delim(x = graph, file = filepath, delim = "\t")
+  })
+
 }
