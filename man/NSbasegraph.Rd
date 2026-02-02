@@ -31,6 +31,9 @@ NSgencutoff}
 \item{slope_cutoff}{numerical length-2 vector with diagonal axis cutoff
 values, as from NSgencutoff}
 
+\item{size_var}{character, column name to map to point size. If missing,
+constant size (specified by \code{size} parameter) is used for all points.}
+
 \item{size}{numerical, size of geom_point, default is 2}
 
 \item{alpha}{numerical, transparency of geom_point, default is 0.4}

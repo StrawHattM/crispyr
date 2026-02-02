@@ -97,6 +97,9 @@ NSgencutoff <- function(data, scale, force_zero_center = c("control", "treatment
 #'   p.adjusted / FDR column. Must be numerical.
 #' @param treat_pval <[`tidy-select`][dplyr_tidy_select]> treatment pvalue /
 #'   p.adjusted / FDR column. Must be numerical.
+#' @param ext_pval <[`tidy-select`][dplyr_tidy_select]> optional external p-value
+#'   column to use for filtering instead of the minimum of ctrl_pval and treat_pval.
+#'   Must be numerical.
 #' @param min_sgrna minimum number of sgRNAs per gene to include in the
 #'   analysis. Default is 3.
 #'
@@ -123,13 +126,25 @@ NSgencutoff <- function(data, scale, force_zero_center = c("control", "treatment
 #' )
 
 NSbasedf <-
-  function(data, control, treament, ctrl_pval, treat_pval, min_sgrna = 3) {
+  function(data, control, treament, ctrl_pval, treat_pval, ext_pval, min_sgrna = 3, 
+           .has_ctrl_pval = TRUE, .has_treat_pval = TRUE, .has_ext_pval = TRUE) {
+    # Validate required columns
     if (!is.numeric(dplyr::pull(data, {{ control }})) |
-      !is.numeric(dplyr::pull(data, {{ control }})) |
-      !missing(ctrl_pval) && !is.numeric(dplyr::pull(data, {{ ctrl_pval }})) |
-      !missing(treat_pval) && !is.numeric(dplyr::pull(data, {{ treat_pval }}))
-    ) {
-      stop("non-numeric control, treament, ctrl_pval and treat_pval have to be numeric columns")
+        !is.numeric(dplyr::pull(data, {{ treament }}))) {
+      stop("control and treament must be numeric columns")
+    }
+    
+    # Validate optional p-value columns if provided
+    if (.has_ctrl_pval && !is.numeric(dplyr::pull(data, {{ ctrl_pval }}))) {
+      stop("ctrl_pval must be a numeric column")
+    }
+    
+    if (.has_treat_pval && !is.numeric(dplyr::pull(data, {{ treat_pval }}))) {
+      stop("treat_pval must be a numeric column")
+    }
+    
+    if (.has_ext_pval && !is.numeric(dplyr::pull(data, {{ ext_pval }}))) {
+      stop("ext_pval must be a numeric column")
     }
 
     tempdf <-
@@ -140,7 +155,8 @@ NSbasedf <-
         control = {{ control }},
         treatment = {{ treament }},
         ctrl_pval = {{ ctrl_pval }},
-        treat_pval = {{ treat_pval }}
+        treat_pval = {{ treat_pval }},
+        ext_pval = {{ ext_pval }}
       ) %>%
       dplyr::filter(.data$num >= min_sgrna)
 
@@ -161,11 +177,18 @@ NSfilterpval <- function(data, min_pval = 0.05) {
     stop("min_pval has to be between 0 and 1")
   }
 
-  tempdf <- data %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(min_pv = min(dplyr::c_across(c("ctrl_pval", "treat_pval")), na.rm = TRUE)) %>%
-    dplyr::filter(.data$min_pv < min_pval) %>%
-    dplyr::select(-c("ctrl_pval", "treat_pval"))
+  # Auto-detect if ext_pval column exists
+  if ("ext_pval" %in% names(data)) {
+    tempdf <- data %>%
+      dplyr::filter(.data$ext_pval < min_pval) %>%
+      dplyr::select(-c("ctrl_pval", "treat_pval", "ext_pval"))
+  } else {
+    tempdf <- data %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(min_pv = min(dplyr::c_across(c("ctrl_pval", "treat_pval")), na.rm = TRUE)) %>%
+      dplyr::filter(.data$min_pv < min_pval) %>%
+      dplyr::select(-c("ctrl_pval", "treat_pval"))
+  }
 
   if (nrow(tempdf) == 0) {
     warning("No genes passed the p-value filter")
@@ -234,17 +257,19 @@ NSsquares <- function(data, x_cutoff, y_cutoff, slope_cutoff){
 #'   NSsquares, containing square information and rank per square, as well as
 #'   control and treatment enrichment value columns. Can be filtered by
 #'   min-pval.
-#' @param alpha numerical, transparency of geom_point, default is 0.4
-#' @param shape numerical, shape of geom_point, default is 21
-#' @param size numerical, size of geom_point, default is 2
-#' @param legend logical, indicates whether you want square to be displayed in
-#'   the legend
 #' @param x_cutoff numerical length-2 vector with x axis cutoff values, as from
 #'   NSgencutoff
 #' @param y_cutoff numerical length-2 vector with y axis cutoff values, as from
 #'   NSgencutoff
 #' @param slope_cutoff numerical length-2 vector with diagonal axis cutoff
 #'   values, as from NSgencutoff
+#' @param size_var character, column name to map to point size. If missing,
+#'   constant size (specified by `size` parameter) is used for all points.
+#' @param size numerical, size of geom_point, default is 2
+#' @param alpha numerical, transparency of geom_point, default is 0.4
+#' @param shape numerical, shape of geom_point, default is 21
+#' @param legend logical, indicates whether you want square to be displayed in
+#'   the legend
 #'
 #' @returns a base Nine Squares graph
 #' @export
@@ -260,6 +285,9 @@ NSbasegraph <- function(data,
                         legend = FALSE) {
 
   if(!is.logical(legend)){stop("legend needs to be TRUE or FALSE")}
+
+  graph <-
+    ggplot2::ggplot(data, ggplot2::aes(x = .data$control, y = .data$treatment))
 
   if (!missing(size_var)) {
     graph <- graph +

@@ -10,6 +10,7 @@ NineSquares(
   treatment,
   ctrl_pval,
   treat_pval,
+  ext_pval,
   min_sgrna = 3,
   min_pval,
   scale = 2,
@@ -56,6 +57,10 @@ p.adjusted / FDR column. Must be numerical.}
 
 \item{treat_pval}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> treatment pvalue /
 p.adjusted / FDR column. Must be numerical.}
+
+\item{ext_pval}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> optional external p-value
+column to use for filtering instead of the minimum of ctrl_pval and treat_pval.
+Must be numerical.}
 
 \item{min_sgrna}{numeric, minimum number of sgRNAs per gene to include in the
 analysis. Default is 3.}

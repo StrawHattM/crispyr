@@ -13,6 +13,9 @@
 #'   p.adjusted / FDR column. Must be numerical.
 #' @param treat_pval <[`tidy-select`][dplyr_tidy_select]> treatment pvalue /
 #'   p.adjusted / FDR column. Must be numerical.
+#' @param ext_pval <[`tidy-select`][dplyr_tidy_select]> optional external p-value
+#'   column to use for filtering instead of the minimum of ctrl_pval and treat_pval.
+#'   Must be numerical.
 #' @param min_sgrna numeric, minimum number of sgRNAs per gene to include in the
 #'   analysis. Default is 3.
 #' @param min_pval numeric, p-value threshold to apply to whether genes appear
@@ -21,6 +24,8 @@
 #'   Default is 2.
 #' @param alpha numeric, transparency of the points in the plot. Default is 0.4.
 #' @param shape numeric, shape of the points in the plot. Default is 21.
+#' @param size_var character, column name to map to point size. If missing,
+#'   constant size (specified by `size` parameter) is used for all points.
 #' @param top_labeled numeric, indicates how many top genes (by euclidean
 #'   distance) in each group/square to label. Default is 5.
 #' @param force_zero_center character, one of "none", "both", "control", or
@@ -66,8 +71,6 @@
 #' @param goi_label_color character, color of the label text, default is
 #'   "black".
 #' @param goi_label_size character, size of the label text, default is 4.
-#' @param size_var character, column name to map to point size. If missing,
-#'   constant size (specified by `size` parameter) is used for all points.
 #'
 #' @returns a ggplot2 object
 #' @export
@@ -106,6 +109,7 @@ NineSquares <- function(data,
                         treatment,
                         ctrl_pval,
                         treat_pval,
+                        ext_pval,
                         min_sgrna = 3,
                         min_pval,
                         scale = 2,
@@ -136,7 +140,10 @@ NineSquares <- function(data,
 
   # Build base data frame
   base_data <-
-    NSbasedf(data, {{control}}, {{treatment}}, {{ctrl_pval}}, {{treat_pval}}, min_sgrna)
+    NSbasedf(data, {{control}}, {{treatment}}, {{ctrl_pval}}, {{treat_pval}}, {{ext_pval}}, min_sgrna,
+             .has_ctrl_pval = !missing(ctrl_pval),
+             .has_treat_pval = !missing(treat_pval),
+             .has_ext_pval = !missing(ext_pval))
 
   # Generate cutoffs before p-val filtering, that way they're based on the whole population's distribution and not the filtered one
   ## Because it's quite a clunky arg otherwise, I'll just default it to none here
@@ -173,10 +180,8 @@ NineSquares <- function(data,
 
   # p-value filtering before squares so rank isn't affected
   if (!missing(min_pval)) { ## trigger is optional argument min_pval existing
-
     base_data <-
       NSfilterpval(base_data, min_pval = min_pval)
-
   }
 
   # Determine squares and assign in new col
@@ -227,6 +232,7 @@ NineSquares <- function(data,
   base_graph <-
     NSbasegraph(
       data = base_data,
+      size_var = size_var,
       alpha = alpha,
       shape = shape,
       legend = legend,
