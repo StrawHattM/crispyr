@@ -97,9 +97,6 @@ NSgencutoff <- function(data, scale, force_zero_center = c("control", "treatment
 #'   p.adjusted / FDR column. Must be numerical.
 #' @param treat_pval <[`tidy-select`][dplyr_tidy_select]> treatment pvalue /
 #'   p.adjusted / FDR column. Must be numerical.
-#' @param ext_pval <[`tidy-select`][dplyr_tidy_select]> optional external p-value
-#'   column to use for filtering instead of the minimum of ctrl_pval and treat_pval.
-#'   Must be numerical.
 #' @param min_sgrna minimum number of sgRNAs per gene to include in the
 #'   analysis. Default is 3.
 #'
@@ -126,39 +123,50 @@ NSgencutoff <- function(data, scale, force_zero_center = c("control", "treatment
 #' )
 
 NSbasedf <-
-  function(data, control, treament, ctrl_pval, treat_pval, ext_pval, min_sgrna = 3, 
-           .has_ctrl_pval = TRUE, .has_treat_pval = TRUE, .has_ext_pval = TRUE) {
+  function(data, control, treament, ctrl_pval, treat_pval, min_sgrna = 3) {
     # Validate required columns
     if (!is.numeric(dplyr::pull(data, {{ control }})) |
         !is.numeric(dplyr::pull(data, {{ treament }}))) {
       stop("control and treament must be numeric columns")
     }
-    
+
+    # Check if optional p-value columns were provided
+    .has_ctrl_pval <- !missing(ctrl_pval)
+    .has_treat_pval <- !missing(treat_pval)
+
     # Validate optional p-value columns if provided
     if (.has_ctrl_pval && !is.numeric(dplyr::pull(data, {{ ctrl_pval }}))) {
       stop("ctrl_pval must be a numeric column")
     }
-    
+
     if (.has_treat_pval && !is.numeric(dplyr::pull(data, {{ treat_pval }}))) {
       stop("treat_pval must be a numeric column")
     }
-    
-    if (.has_ext_pval && !is.numeric(dplyr::pull(data, {{ ext_pval }}))) {
-      stop("ext_pval must be a numeric column")
-    }
 
-    tempdf <-
-      data %>%
-      dplyr::select(
-        id = 1,
-        num = 2,
-        control = {{ control }},
-        treatment = {{ treament }},
-        ctrl_pval = {{ ctrl_pval }},
-        treat_pval = {{ treat_pval }},
-        ext_pval = {{ ext_pval }}
-      ) %>%
-      dplyr::filter(.data$num >= min_sgrna)
+    # Build selection based on available columns
+    if (.has_ctrl_pval && .has_treat_pval) {
+      tempdf <-
+        data %>%
+        dplyr::select(
+          id = 1,
+          num = 2,
+          control = {{ control }},
+          treatment = {{ treament }},
+          ctrl_pval = {{ ctrl_pval }},
+          treat_pval = {{ treat_pval }}
+        ) %>%
+        dplyr::filter(.data$num >= min_sgrna)
+    } else {
+      tempdf <-
+        data %>%
+        dplyr::select(
+          id = 1,
+          num = 2,
+          control = {{ control }},
+          treatment = {{ treament }}
+        ) %>%
+        dplyr::filter(.data$num >= min_sgrna)
+    }
 
     return(tempdf)
   }

@@ -25,10 +25,12 @@ NineSquares data. Default: \code{FALSE}.}
 \value{
 For single gene input: a character vector of group/square names where
 the gene was found, or \code{character(0)} if not found. For multiple genes: a
-named list where each element contains the character vector of groups/squares
-for that gene. When \code{data} is a named list of graphs or dataframes, returns
-a named list where names correspond to the input list names and values are
-the square locations.
+named character vector where names are gene IDs and values are their square
+locations (or \code{NA_character_} if a gene is not found in the data). When \code{data}
+is a named list of graphs or dataframes, returns a named list where the outer
+names correspond to the input list names (e.g., comparisons) and values are
+named character vectors of square locations for each gene. Genes not present
+in a particular graph/dataframe will have \code{NA} values.
 }
 \description{
 Find which groups or squares contain specified genes. Accepts either a list

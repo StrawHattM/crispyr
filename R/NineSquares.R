@@ -13,9 +13,6 @@
 #'   p.adjusted / FDR column. Must be numerical.
 #' @param treat_pval <[`tidy-select`][dplyr_tidy_select]> treatment pvalue /
 #'   p.adjusted / FDR column. Must be numerical.
-#' @param ext_pval <[`tidy-select`][dplyr_tidy_select]> optional external p-value
-#'   column to use for filtering instead of the minimum of ctrl_pval and treat_pval.
-#'   Must be numerical.
 #' @param min_sgrna numeric, minimum number of sgRNAs per gene to include in the
 #'   analysis. Default is 3.
 #' @param min_pval numeric, p-value threshold to apply to whether genes appear
@@ -109,7 +106,6 @@ NineSquares <- function(data,
                         treatment,
                         ctrl_pval,
                         treat_pval,
-                        ext_pval,
                         min_sgrna = 3,
                         min_pval,
                         scale = 2,
@@ -140,10 +136,7 @@ NineSquares <- function(data,
 
   # Build base data frame
   base_data <-
-    NSbasedf(data, {{control}}, {{treatment}}, {{ctrl_pval}}, {{treat_pval}}, {{ext_pval}}, min_sgrna,
-             .has_ctrl_pval = !missing(ctrl_pval),
-             .has_treat_pval = !missing(treat_pval),
-             .has_ext_pval = !missing(ext_pval))
+    NSbasedf(data, {{control}}, {{treatment}}, {{ctrl_pval}}, {{treat_pval}}, min_sgrna)
 
   # Generate cutoffs before p-val filtering, that way they're based on the whole population's distribution and not the filtered one
   ## Because it's quite a clunky arg otherwise, I'll just default it to none here

@@ -4,3 +4,4 @@
 ^LICENSE\.md$
 ^data\\test_data.RDS$
 ^devlog\.R$
+^AGENTS\.md$

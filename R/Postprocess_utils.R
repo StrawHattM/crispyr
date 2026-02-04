@@ -89,10 +89,12 @@ extractNSdata <- function(graph_list, which = "data") {
 #'
 #' @return For single gene input: a character vector of group/square names where
 #'   the gene was found, or `character(0)` if not found. For multiple genes: a
-#'   named list where each element contains the character vector of groups/squares
-#'   for that gene. When `data` is a named list of graphs or dataframes, returns
-#'   a named list where names correspond to the input list names and values are
-#'   the square locations.
+#'   named character vector where names are gene IDs and values are their square
+#'   locations (or `NA_character_` if a gene is not found in the data). When `data`
+#'   is a named list of graphs or dataframes, returns a named list where the outer
+#'   names correspond to the input list names (e.g., comparisons) and values are
+#'   named character vectors of square locations for each gene. Genes not present
+#'   in a particular graph/dataframe will have `NA` values.
 #'
 #' @export
 
@@ -132,7 +134,11 @@ where_is <- function(genes, data, return_full = FALSE) {
 
   # For NineSquares dataframes with multiple genes, return a vector
   if (is.data.frame(data) && "square" %in% names(data) && length(genes) > 1L) {
-    return(vapply(genes, .find_one, character(1)))
+    results <- sapply(genes, .find_one, simplify = FALSE, USE.NAMES = TRUE)
+    # Convert to character vector, using NA_character_ for not found
+    return(vapply(results, function(x) {
+      if (length(x) == 0) NA_character_ else x[1]
+    }, character(1)))
   }
 
   results <- purrr::map(purrr::set_names(genes), .find_one)
@@ -143,48 +149,25 @@ where_is <- function(genes, data, return_full = FALSE) {
 
 
 
-#' Save Nine Squares data to files
-#'
-#' @param graph_list A Nine Squares plot object or list of Nine Squares plot
-#'   objects
-#' @param dir Directory path where files will be saved. Created if it doesn't
-#'   exist. Default: "./graphdata/"
-#' @param prefix Prefix for output filenames. If not provided, will use
-#'   "NineSquaresData_<object_name>_"
-#'
-#' @export
+saveNSdata <- function(graph_list,
+                       dir = "./graphdata",
+                       prefix) {
 
-saveNSdata <- function(graph_list, dir = "./graphdata/", prefix) {
+  if (!dir.exists(dir)) dir.create(dir)
 
-  # Convert single graph to list
-  if (inherits(graph_list, "gg")) {
-    graph_name <- deparse(substitute(graph_list))
-    graph_list <- list(graph_list)
-    names(graph_list) <- graph_name
-  }
-
-  # Create directory if needed
-  if (!dir.exists(dir)) {
-    dir.create(dir, recursive = TRUE)
-  }
-
-  # Set prefix
   if (missing(prefix)) {
     prefix <- paste0("NineSquaresData_", deparse(substitute(graph_list)), "_")
   }
 
-  # Extract and save data
-  graphdata_list <- extractNSdata(graph_list, which = "data")
-
-  # Ensure names exist
-  if (is.null(names(graphdata_list))) {
-    names(graphdata_list) <- paste0("graph_", seq_along(graphdata_list))
+  graph_names <- names(graph_list)
+  if (is.null(graph_names)) {
+    graph_names <- seq_along(graph_list)
   }
 
-  # Write files
-  purrr::iwalk(graphdata_list, function(graph, name) {
-    filepath <- file.path(dir, paste0(prefix, name, ".txt"))
-    readr::write_delim(x = graph, file = filepath, delim = "\t")
+  purrr::map2(graph_list, graph_names, function(graph, name) {
+    graph_data <- extractNSdata(graph)
+    readr::write_delim(graph_data, file.path(dir, paste0(prefix, name, ".txt")))
   })
 
+  invisible(NULL)
 }
