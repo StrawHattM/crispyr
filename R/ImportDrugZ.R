@@ -35,7 +35,7 @@ ImportDrugZ <- function(DrugZ_dir, extra_prefix = NULL) {
                             "^Gm[:digit:]{4,5}|^Olfr[:digit:]*|^Vmn[:digit:]*",
                             negate = TRUE)
       ) %>%
-      dplyr::relocate(.data$numObs, .after=.data$GENE) %>%
+      dplyr::relocate("numObs", .after = "GENE") %>%
       dplyr::rename_with(.cols = dplyr::everything(),
                          .fn = ~ stringr::str_replace_all(., "\\||\\-", "_"))
 
@@ -104,11 +104,7 @@ BuildDrugZdz <- function(drugz_list, pattern = "^([dD]|[dD]ay)0_", order = NULL)
         dplyr::rowwise() %>%
         dplyr::mutate(min_pval = min(dplyr::c_across(dplyr::contains("pval"))),
                       min_fdr = min(dplyr::c_across(dplyr::contains("fdr")))) %>%
-        dplyr::select(.data$GENE,
-                      .data$numObs,
-                      .data$normZ,
-                      .data$min_pval,
-                      .data$min_fdr) %>%
+        dplyr::select("GENE", "numObs", "normZ", "min_pval", "min_fdr") %>%
         dplyr::rename_with(
           .cols = 2:5,
           .fn = ~ stringr::str_replace_all(., c("min" = prefix,
@@ -138,8 +134,8 @@ BuildDrugZdz <- function(drugz_list, pattern = "^([dD]|[dD]ay)0_", order = NULL)
     df_collapsed <-
       df_collapsed %>%
       dplyr::select(
-        .data$GENE,
-        .data$numObs,
+        "GENE",
+        "numObs",
         !!!purrr::map(order_levels, ~ dplyr::starts_with(paste0(.x, "_")))
       )
 

@@ -4,7 +4,7 @@ CountIndex <- function(counts, order) {
 
   if(missing(order)) {
 
-    withr::with_locale(LC_COLLATE = "en_US.UTF-8", sort(colnames(counts)[]))
+    withr::with_locale(c(LC_COLLATE = "en_US.UTF-8"), sort(colnames(counts)))
 
   }
 

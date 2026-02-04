@@ -98,11 +98,7 @@ BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
         dplyr::rowwise() %>%
         dplyr::mutate(min_pval = min(dplyr::c_across(dplyr::contains("p_value"))),
                       min_fdr = min(dplyr::c_across(dplyr::contains("fdr")))) %>%
-        dplyr::select(.data$id,
-                      .data$num,
-                      .data$pos_lfc,
-                      .data$min_pval,
-                      .data$min_fdr) %>%
+        dplyr::select("id", "num", "pos_lfc", "min_pval", "min_fdr") %>%
         dplyr::rename_with(
           .cols = 2:5,
           .fn = ~ stringr::str_replace_all(., "pos|min", prefix)
@@ -131,8 +127,8 @@ BuildRRAdz <- function(rra_list, pattern = "^([dD]|[dD]ay)0_", order = NULL) {
     df_collapsed <-
       df_collapsed %>%
       dplyr::select(
-        .data$id,
-        .data$num,
+        "id",
+        "num",
         !!!purrr::map(order_levels, ~ dplyr::starts_with(paste0(.x, "_")))
       )
 

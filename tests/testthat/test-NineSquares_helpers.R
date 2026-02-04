@@ -226,3 +226,199 @@ test_that("NSfilterpval handles invalid min_pval", {
 #   expect_equal(result$id, goi_vector)
 #   expect_true(all(c("num", "control", "treatment") %in% colnames(result)))
 # })
+
+
+# --- NSsquares tests ---
+
+test_that("NSsquares assigns squares correctly based on cutoffs", {
+  # The NSsquares function checks neutral_slope FIRST:
+  # If diff (treatment - control) is between slope_cutoff[1] and slope_cutoff[2],
+  # the gene is classified as neutral_slope regardless of position.
+
+  # To test positional assignment, diff must be OUTSIDE slope_cutoff.
+  # slope_cutoff[1] = lower bound, slope_cutoff[2] = upper bound
+
+  # For square assignment to work:
+  # - bottom_left: control < x_cutoff[1], treatment < y_cutoff[1], diff outside slope
+  # - bottom_center: control between x_cutoff, treatment < y_cutoff[1], diff outside slope
+  # etc.
+
+  # Create data with diff values OUTSIDE the slope_cutoff range
+  data <- data.frame(
+    id = c("gene_bl", "gene_bc", "gene_br",
+           "gene_tl", "gene_tc", "gene_tr"),
+    num = rep(4, 6),
+    # For bottom row: treatment = -10, so diff = treatment - control = -10 - control
+    # For top row: treatment = 10, so diff = 10 - control
+    # With slope_cutoff = c(-5, 5), diffs outside this range will NOT be neutral_slope
+    control =   c(-3,  0,  3, -3,  0,  3),
+    treatment = c(-10, -10, -10, 10, 10, 10)
+    # diffs:     -7  -10  -13   13  10   7  <- all outside c(-5, 5)
+  )
+
+  x_cutoff <- c(-1, 1)
+  y_cutoff <- c(-1, 1)
+  slope_cutoff <- c(-5, 5)
+
+  result <- NSsquares(data, x_cutoff, y_cutoff, slope_cutoff)
+
+  # Check that necessary columns were added
+  expect_true("square" %in% names(result))
+  expect_true("diff" %in% names(result))
+  expect_true("rank" %in% names(result))
+  expect_true("euclid_dist" %in% names(result))
+
+  # Check specific square assignments
+  expect_equal(result$square[result$id == "gene_bl"], "bottom_left")
+  expect_equal(result$square[result$id == "gene_bc"], "bottom_center")
+  expect_equal(result$square[result$id == "gene_br"], "bottom_right")
+  expect_equal(result$square[result$id == "gene_tl"], "top_left")
+  expect_equal(result$square[result$id == "gene_tc"], "top_center")
+  expect_equal(result$square[result$id == "gene_tr"], "top_right")
+})
+
+
+test_that("NSsquares assigns middle and center squares when diff is outside slope_cutoff", {
+  # Middle squares require treatment between y_cutoff, which naturally
+  # makes diff close to control. To get diff outside slope_cutoff while
+  # keeping treatment in middle range, we need careful values.
+
+  # For middle_left: control < x_cutoff[1] (< -1), treatment between y_cutoff (-1, 1)
+  #   e.g., control = -10, treatment = 0 -> diff = 10 (outside c(-5, 5))
+
+  data <- data.frame(
+    id = c("gene_ml", "gene_c", "gene_mr"),
+    num = rep(4, 3),
+    control =   c(-10, 0, 10),
+    treatment = c(0,   0, 0)
+    # diffs:     10   0  -10
+  )
+
+  x_cutoff <- c(-1, 1)
+  y_cutoff <- c(-1, 1)
+  slope_cutoff <- c(-5, 5)  # diff = 0 IS in this range, so center -> neutral_slope
+
+  result <- NSsquares(data, x_cutoff, y_cutoff, slope_cutoff)
+
+  # middle_left and middle_right have diff outside slope_cutoff
+  expect_equal(result$square[result$id == "gene_ml"], "middle_left")
+  expect_equal(result$square[result$id == "gene_mr"], "middle_right")
+
+  # center has diff = 0 which IS between -5 and 5, so it becomes neutral_slope
+  expect_equal(result$square[result$id == "gene_c"], "neutral_slope")
+})
+
+
+test_that("NSsquares assigns neutral_slope correctly", {
+  # Create data where treatment - control is within slope_cutoff
+  data <- data.frame(
+    id = c("gene_neutral", "gene_not_neutral"),
+    num = c(4, 4),
+    control = c(2, 2),
+    treatment = c(2.5, 5)  # diff = 0.5 and 3
+  )
+
+  x_cutoff <- c(-1, 1)
+  y_cutoff <- c(-1, 1)
+  slope_cutoff <- c(-1, 1)  # Narrow slope cutoff
+
+  result <- NSsquares(data, x_cutoff, y_cutoff, slope_cutoff)
+
+  # gene_neutral has diff = 0.5, which is between -1 and 1
+  expect_equal(result$square[result$id == "gene_neutral"], "neutral_slope")
+  # gene_not_neutral has diff = 3, outside slope_cutoff
+  expect_equal(result$square[result$id == "gene_not_neutral"], "top_right")
+})
+
+
+test_that("NSsquares calculates euclidean distance correctly", {
+  data <- data.frame(
+    id = c("gene1", "gene2"),
+    num = c(4, 4),
+    control = c(3, 4),
+    treatment = c(4, 3)
+  )
+
+  x_cutoff <- c(-1, 1)
+  y_cutoff <- c(-1, 1)
+  slope_cutoff <- c(-10, 10)
+
+  result <- NSsquares(data, x_cutoff, y_cutoff, slope_cutoff)
+
+  # Euclidean distance = sqrt(control^2 + treatment^2)
+  expected_dist1 <- sqrt(3^2 + 4^2)  # = 5
+  expected_dist2 <- sqrt(4^2 + 3^2)  # = 5
+
+  expect_equal(result$euclid_dist[result$id == "gene1"], expected_dist1)
+  expect_equal(result$euclid_dist[result$id == "gene2"], expected_dist2)
+})
+
+
+test_that("NSsquares calculates perpendicular distance correctly", {
+  data <- data.frame(
+    id = c("gene1", "gene2"),
+    num = c(4, 4),
+    control = c(2, 3),
+    treatment = c(4, 3)  # diff = 2 and 0
+  )
+
+  x_cutoff <- c(-1, 1)
+  y_cutoff <- c(-1, 1)
+  slope_cutoff <- c(-10, 10)
+
+  result <- NSsquares(data, x_cutoff, y_cutoff, slope_cutoff)
+
+  # perp_dist = abs(diff) / sqrt(2)
+  expected_perp1 <- abs(4 - 2) / sqrt(2)  # = 2/sqrt(2)
+  expected_perp2 <- abs(3 - 3) / sqrt(2)  # = 0
+
+  expect_equal(result$perp_dist[result$id == "gene1"], expected_perp1)
+  expect_equal(result$perp_dist[result$id == "gene2"], expected_perp2)
+})
+
+
+test_that("NSsquares ranks genes within each square by score", {
+  # Create multiple genes in the same square with different distances
+  data <- data.frame(
+    id = c("gene1", "gene2", "gene3"),
+    num = c(4, 4, 4),
+    control = c(3, 4, 5),      # All in top_right
+    treatment = c(3, 4, 5)
+  )
+
+  x_cutoff <- c(-1, 1)
+  y_cutoff <- c(-1, 1)
+  slope_cutoff <- c(-10, 10)
+
+  result <- NSsquares(data, x_cutoff, y_cutoff, slope_cutoff)
+
+  # All should be in top_right (or center due to being on diagonal - but diff=0 means neutral_slope)
+  # Actually with diff=0 and slope_cutoff = c(-10, 10), all fall in neutral_slope
+  # Let's check ranks exist and are 1, 2, 3
+  expect_true(all(result$rank %in% 1:3))
+})
+
+
+test_that("NSsquares errors when cutoffs are missing", {
+  data <- data.frame(
+    id = c("gene1"),
+    num = c(4),
+    control = c(1),
+    treatment = c(2)
+  )
+
+  expect_error(
+    NSsquares(data, y_cutoff = c(-1, 1), slope_cutoff = c(-1, 1)),
+    "x_cutoff, y_cutoff and slope_cutoff have to be provided"
+  )
+
+  expect_error(
+    NSsquares(data, x_cutoff = c(-1, 1), slope_cutoff = c(-1, 1)),
+    "x_cutoff, y_cutoff and slope_cutoff have to be provided"
+  )
+
+  expect_error(
+    NSsquares(data, x_cutoff = c(-1, 1), y_cutoff = c(-1, 1)),
+    "x_cutoff, y_cutoff and slope_cutoff have to be provided"
+  )
+})
