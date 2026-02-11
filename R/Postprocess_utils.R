@@ -154,12 +154,12 @@ where_is <- function(genes, data, return_full = FALSE) {
 #' Extracts data from Nine Squares plot objects and saves as tab-delimited files.
 #'
 #' @param graph_list A Nine Squares plot object or named list of plots.
-#' @param dir Directory to save files. Created if it doesn't exist. 
+#' @param dir Directory to save files. Created if it doesn't exist.
 #'   Default: \code{"./graphdata"}
 #' @param prefix Filename prefix. Defaults to \code{"NineSquaresData_<name>_"}.
 #'
 #' @returns Invisibly returns \code{NULL}. Called for side effects.
-#'   
+#'
 #' @details
 #' Files are named \code{<prefix><name>.txt}. Each contains the full data frame
 #' with gene IDs, fold changes, p-values, and square assignments.
@@ -202,7 +202,7 @@ saveNSdata <- function(graph_list,
 #' Saves Nine Squares plot objects as SVG and/or PNG files.
 #'
 #' @param graph_list A Nine Squares plot object or named list of plots.
-#' @param dir Directory to save files. Created if it doesn't exist. 
+#' @param dir Directory to save files. Created if it doesn't exist.
 #'   Default: \code{"./graphs"}
 #' @param prefix Filename prefix. Defaults to \code{"NineSquares"}.
 #' @param formats Character vector specifying output formats. Options are
@@ -212,7 +212,7 @@ saveNSdata <- function(graph_list,
 #' @param dpi Resolution for PNG files. Default: 300
 #'
 #' @returns Invisibly returns \code{NULL}. Called for side effects.
-#'   
+#'
 #' @details
 #' Files are named \code{<prefix>_<listname>_<graphname>.<format>}. The list name
 #' is derived from the object name with common suffixes like "graphs" or "plots"
@@ -222,10 +222,10 @@ saveNSdata <- function(graph_list,
 #' \dontrun{
 #' # Save as both SVG and PNG
 #' saveNSgraphs(my_plots)
-#' 
+#'
 #' # Save only SVG files
 #' saveNSgraphs(comparison_graphs, formats = "svg")
-#' 
+#'
 #' # Custom directory and size
 #' saveNSgraphs(plots, dir = "figures", width = 10, height = 8)
 #' }
@@ -237,34 +237,34 @@ saveNSgraphs <- function(graph_list,
                          dir = "./graphs",
                          prefix = "NineSquares",
                          formats = c("svg", "png"),
-                         width = 7,
-                         height = 7,
-                         dpi = 300) {
-  
+                         width = 6,
+                         height = 6,
+                         dpi = 1200) {
+
   if (!dir.exists(dir)) dir.create(dir)
-  
+
   formats <- match.arg(formats, choices = c("svg", "png"), several.ok = TRUE)
-  
+
   # Get the list name and clean it
   list_name <- deparse(substitute(graph_list))
-  list_name <- gsub("_?(graphs?|plots?)$", "", list_name, ignore.case = TRUE)
-  
+  list_name <- gsub("_?(graphs?|plots?)", "", list_name, ignore.case = TRUE)
+
   # Handle single graph vs list
   single_graph <- inherits(graph_list, "gg")
-  
+
   if (single_graph) {
     graph_list <- list(graph_list)
   }
-  
+
   graph_names <- names(graph_list)
   if (is.null(graph_names)) {
     graph_names <- seq_along(graph_list)
   }
-  
+
   purrr::walk2(graph_list, graph_names, function(graph, name) {
-    
+
     base_filename <- file.path(dir, paste(prefix, list_name, name, sep = "_"))
-    
+
     if ("svg" %in% formats) {
       ggplot2::ggsave(
         filename = paste0(base_filename, ".svg"),
@@ -273,7 +273,7 @@ saveNSgraphs <- function(graph_list,
         height = height
       )
     }
-    
+
     if ("png" %in% formats) {
       ggplot2::ggsave(
         filename = paste0(base_filename, ".png"),
@@ -284,6 +284,6 @@ saveNSgraphs <- function(graph_list,
       )
     }
   })
-  
+
   invisible(NULL)
 }
