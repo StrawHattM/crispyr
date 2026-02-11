@@ -390,6 +390,8 @@ NStitle <- function(graph, title) {
 #' @param graph graph output of basegraph
 #' @param data processed dataframe, needs to be the same fed into NSbasegraph
 #' @param groups_labeled square groups where top n genes will be labeled.
+#'   Use \code{"all"} to label all groups except \code{"neutral_slope"} and
+#'   \code{"center"}.
 #'   Default is c("top_center", "bottom_center", "middle_right", "middle_left")
 #' @param top_labeled number of genes from the top by euclidian distance to be labeled
 #'
@@ -400,6 +402,12 @@ NSaddtoplabels <- function(graph,
                            data,
                            groups_labeled = c("top_center", "bottom_center", "middle_right", "middle_left"),
                            top_labeled = 10) {
+
+  if (length(groups_labeled) == 1 && groups_labeled == "all") {
+    groups_labeled <- c("top_left", "top_center", "top_right",
+                        "middle_left", "middle_right",
+                        "bottom_left", "bottom_center", "bottom_right")
+  }
 
   nudge_distance <-
     mean(

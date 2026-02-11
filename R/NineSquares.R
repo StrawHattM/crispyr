@@ -46,8 +46,10 @@
 #'   FALSE
 #' @param filename character, path/name of the file to be written containing the
 #'   data.
-#' @param groups_labeled groups to have their top genes labeled. Defaults to
-#'   "top_center", "bottom_center", "middle_right" and "middle_left"
+#' @param groups_labeled groups to have their top genes labeled. Use
+#'   \code{"all"} to label all groups except \code{"neutral_slope"} and
+#'   \code{"center"}. Defaults to "top_center", "bottom_center",
+#'   "middle_right" and "middle_left"
 #' @param assign_object logical or character, if TRUE assigns the resulting plot
 #'   to an object in the global environment with a default name based on the
 #'   data and conditions used; if a character string is provided, assigns the
@@ -255,6 +257,12 @@ NineSquares <- function(data,
 
   if(!is.character(groups_labeled)) {
     stop("'groups_labeled' needs to be a character vector.")
+  }
+
+  if (length(groups_labeled) == 1 && groups_labeled == "all") {
+    groups_labeled <- c("top_left", "top_center", "top_right",
+                        "middle_left", "middle_right",
+                        "bottom_left", "bottom_center", "bottom_right")
   }
 
   graph <-
