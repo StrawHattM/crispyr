@@ -111,8 +111,10 @@ to an object in the global environment with a default name based on the
 data and conditions used; if a character string is provided, assigns the
 plot to an object with that name. Default is NULL.}
 
-\item{groups_labeled}{groups to have their top genes labeled. Defaults to
-"top_center", "bottom_center", "middle_right" and "middle_left"}
+\item{groups_labeled}{groups to have their top genes labeled. Use
+\code{"all"} to label all groups except \code{"neutral_slope"} and
+\code{"center"}. Defaults to "top_center", "bottom_center",
+"middle_right" and "middle_left"}
 
 \item{goi}{character vector of \emph{g}enes \emph{o}f \emph{i}nterest to be highlighted.}
 

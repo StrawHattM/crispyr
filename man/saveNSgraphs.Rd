@@ -9,9 +9,9 @@ saveNSgraphs(
   dir = "./graphs",
   prefix = "NineSquares",
   formats = c("svg", "png"),
-  width = 7,
-  height = 7,
-  dpi = 300
+  width = 6,
+  height = 6,
+  dpi = 1200
 )
 }
 \arguments{

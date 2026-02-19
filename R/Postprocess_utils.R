@@ -247,15 +247,12 @@ saveNSgraphs <- function(graph_list,
 
   # Get the list name and clean it
   list_name <- deparse(substitute(graph_list))
-<<<<<<< HEAD
   # Remove graphs/plots with surrounding delimiters, but collapse multiple delimiters
   list_name <- gsub("[-_]*(graphs?|plots?)[-_]*", "_", list_name, ignore.case = TRUE)
   # Clean up leading/trailing underscores and multiple consecutive underscores
   list_name <- gsub("^_+|_+$", "", list_name)
   list_name <- gsub("_{2,}", "_", list_name)
-=======
   list_name <- gsub("_?(graphs?|plots?)", "", list_name, ignore.case = TRUE)
->>>>>>> a4ce2481168e2bfe0e9f0df30f89c2346d103dd9
 
   # Handle single graph vs list
   single_graph <- inherits(graph_list, "gg")

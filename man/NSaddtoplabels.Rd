@@ -18,6 +18,8 @@ NSaddtoplabels(
 \item{data}{processed dataframe, needs to be the same fed into NSbasegraph}
 
 \item{groups_labeled}{square groups where top n genes will be labeled.
+Use \code{"all"} to label all groups except \code{"neutral_slope"} and
+\code{"center"}.
 Default is c("top_center", "bottom_center", "middle_right", "middle_left")}
 
 \item{top_labeled}{number of genes from the top by euclidian distance to be labeled}
